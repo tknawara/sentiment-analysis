@@ -23,7 +23,7 @@ object TwitterTest {
   }
 
   def configureStreamingContext(): StreamingContext = {
-    val conf = new SparkConf().setMaster("local[3]").setAppName("Twitter")
+    val conf = new SparkConf().setMaster("local[*]").setAppName("Twitter")
     sc = new SparkContext(conf)
     new StreamingContext(sc, Seconds(10))
   }
