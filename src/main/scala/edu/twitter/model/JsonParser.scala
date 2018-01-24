@@ -4,7 +4,7 @@ import org.apache.spark.sql.DataFrame
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
-  * Class Resposible on parse json files.
+  * Class responsible for parsing JSON files.
   *
   * @param sparkConfMaster spark configuration master
   * @param sparkConfAppName spark configuration app name
