@@ -20,12 +20,12 @@ class SentimentModelDataCreator(tweetsRDD: RDD[Row]) {
   def getTrainingAndTestingData(): (RDD[LabeledPoint], RDD[LabeledPoint]) = {
 
     //We use scala's Try to filter out tweets that couldn't be parsed
-    val goodBadRecords = getGoodBadRecords()
+    val goodBadRecords = getLabeledRecords()
     //We use this syntax to filter out exceptions
     val exceptions = goodBadRecords.filter(_.isFailure)
     println("total records with exceptions: " + exceptions.count())
     exceptions.take(10).foreach(x => println(x.failed))
-    var labeledTweets = goodBadRecords.filter((_.isSuccess)).map(_.get)
+    val labeledTweets = goodBadRecords.filter((_.isSuccess)).map(_.get)
     println("total records with successes: " + labeledTweets.count())
 
     val input_labeled: RDD[LabeledPoint] = transformData(labeledTweets)
@@ -58,10 +58,10 @@ class SentimentModelDataCreator(tweetsRDD: RDD[Row]) {
     val hashingTF = new HashingTF(2000)
 
     //Map the input strings to a tuple of labeled point + input text
-    val input_labeled = labeledTweets.map(
+    val inputLabeled = labeledTweets.map(
       t => (t._1, hashingTF.transform(t._2)))
       .map(x => new LabeledPoint((x._1).toDouble, x._2))
-    input_labeled
+    inputLabeled
   }
 
   /**
@@ -70,7 +70,7 @@ class SentimentModelDataCreator(tweetsRDD: RDD[Row]) {
     * sad by the presence of other words.
     * @return labeled data
     */
-  private def getGoodBadRecords(): RDD[Try[(Int, Seq[String])]] = {
+  private def getLabeledRecords(): RDD[Try[(Int, Seq[String])]] = {
     tweetsRDD.map(
       row =>{
         Try{
