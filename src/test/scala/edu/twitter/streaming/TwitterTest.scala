@@ -11,8 +11,8 @@ object TwitterTest {
     val ssc = configureStreamingContext()
     val tweets = new TwitterStream(ssc).createStream()
     Logger.getRootLogger.setLevel(Level.ERROR)
-    tweets.foreachRDD(rdd => rdd.take(10).foreach(println(_)))
-
+    //tweets.foreachRDD(rdd => rdd.take(10).foreach(println(_)))
+    tweets.foreachRDD(rdd => rdd.take(10).map(status => status.getText).filter(str => str.contains("to")).foreach(println(_)))
     ssc.start()
     ssc.awaitTermination()
     ssc.stop(true)
