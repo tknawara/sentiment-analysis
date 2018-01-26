@@ -6,10 +6,24 @@ import org.apache.spark.mllib.feature.HashingTF
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
 
+/** Representation of the classified tweet, we may add
+  * more fields to it later. */
 case class ClassifiedTweet(label: Double, tweetText: String)
 
+/** Responsible for building `TweeterStream` and the `Classification Model`
+  * and classifying the stream with the model.
+  *
+  * @param ssc StreamingContext, used for model and
+  *            stream creation
+  */
 class Classifier(ssc: StreamingContext) {
 
+  /**
+    * Build the `Classification Model` and a `TweeterStream`
+    * and return a stream of `ClassifiedTweets`.
+    *
+    * @return stream of `ClassifiedTweets`
+    */
   def createClassifiedStream(): DStream[ClassifiedTweet] = {
     val tweets = new TwitterStream(ssc).createStream()
     val model = createModel()
@@ -23,6 +37,7 @@ class Classifier(ssc: StreamingContext) {
     classifiedStream
   }
 
+  /** Create the Classification model. */
   private def createModel(): GradientBoostingModel#GenericModel = {
     val tweetsLoader = new TweetsLoader(ssc.sparkContext)
     val twitterData = new SentimentModelDataCreator(tweetsLoader.getTweetsDataSet())
