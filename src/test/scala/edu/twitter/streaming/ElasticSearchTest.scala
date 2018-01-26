@@ -3,7 +3,7 @@ package edu.twitter.streaming
 import org.apache.spark.{SparkConf, SparkContext}
 import org.elasticsearch.spark.rdd.EsSpark
 
-object TestElasticsearch {
+object ElasticSearchTest {
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf().setAppName("Twitter").setMaster("local[*]")
     conf.set("es.index.auto.create", "true")
