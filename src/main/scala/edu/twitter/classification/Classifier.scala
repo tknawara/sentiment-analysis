@@ -28,8 +28,10 @@ class Classifier(ssc: StreamingContext) {
     val tweets = new TwitterStream(ssc).createStream()
     val model = createModel()
     val hashingTF = new HashingTF(2000)
+    val supportedLangIso = Set("en", "eng")
     val classifiedStream = for {
       tweet <- tweets
+      if supportedLangIso(tweet.getLang)
       features = hashingTF.transform(tweet.getText.split(" "))
       label = model(features)
     } yield ClassifiedTweet(label, tweet.getText)
