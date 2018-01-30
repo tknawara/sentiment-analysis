@@ -39,7 +39,12 @@ class Classifier(ssc: StreamingContext) {
     classifiedStream
   }
 
-  /** Create the Classification model. */
+
+  /**
+    * Create the Classification model.
+    * @return `GenericModel` which is a function to
+    *         label the tweets.
+    */
   private def createModel(): GradientBoostingModel#GenericModel = {
     val tweetsLoader = new TweetsLoader(ssc.sparkContext)
     val twitterData = new SentimentModelDataCreator(tweetsLoader.getTweetsDataSet())
