@@ -1,13 +1,14 @@
 package edu.twitter.model
 
+import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, Dataset, Row}
+import org.apache.spark.sql.{DataFrame, Row}
 
 /**
   * Loader loads all tweets model data this data is static data in FS not HDFS.
   */
-class TweetsLoader {
-  private val tweetsJsonParser = new JsonParser("local[*]", "Twitter");
+class TweetsLoader(sc: SparkContext) {
+  private val tweetsJsonParser = new JsonParser(sc)
 
   /**
     * Get Tweets data set as RDD.
@@ -15,8 +16,9 @@ class TweetsLoader {
     * @return RDD contains stream of tweets
     */
   def getTweetsDataSet(): RDD[Row] = {
+    val dataPath = this.getClass.getClassLoader.getResource("tweets").getPath
 
-    var tweetDF = tweetsJsonParser.parse("src\\main\\resources\\tweets\\*")
+    var tweetDF = tweetsJsonParser.parse(dataPath)
     var messages = tweetDF.select("msg")
     println("Total messages: " + messages.count())
     cleanRecords(messages)

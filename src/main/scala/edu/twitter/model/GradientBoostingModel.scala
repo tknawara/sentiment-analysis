@@ -13,6 +13,8 @@ import org.apache.spark.rdd.RDD
   */
 class GradientBoostingModel(trainingData: RDD[LabeledPoint], validationData: RDD[LabeledPoint]) {
 
+  type GenericModel = (org.apache.spark.mllib.linalg.Vector => Double)
+
   /**
     * Create a GradientBoosting Classification model using a Gradient Boosting model.
     * The reason we chose Gradient Boosting for classification over some other model
@@ -24,7 +26,7 @@ class GradientBoostingModel(trainingData: RDD[LabeledPoint], validationData: RDD
         -Max Depth of each decision tree
     * @return sentiment classification model
     */
-  def getModel(): GradientBoostedTreesModel = {
+  def createModel(): GenericModel = {
     val boostingStrategy = BoostingStrategy.defaultParams("Classification")
     boostingStrategy.setNumIterations(20) //number of passes over our training data
     boostingStrategy.treeStrategy.setNumClasses(2) //We have two output classes: happy and sad
@@ -35,7 +37,7 @@ class GradientBoostingModel(trainingData: RDD[LabeledPoint], validationData: RDD
 
     var model = GradientBoostedTrees.train(trainingData, boostingStrategy)
     evaluate(model)
-    model
+    (features: org.apache.spark.mllib.linalg.Vector) => model.predict(features)
   }
 
   /**
