@@ -32,7 +32,7 @@ class Classifier(ssc: StreamingContext) {
     val classifiedStream = for {
       tweet <- tweets
       if supportedLangIso(tweet.getLang)
-      features = hashingTF.transform(tweet.getText.split(" "))
+      features = hashingTF.transform(tweet.getText.split(" ").filter(isValid))
       label = model(features)
     } yield ClassifiedTweet(label, tweet.getText)
 
@@ -51,6 +51,13 @@ class Classifier(ssc: StreamingContext) {
     val (trainingSet, testingSet) = twitterData.getTrainingAndTestingData()
     val gradientBoostingModel = new GradientBoostingModel(trainingSet, testingSet)
     gradientBoostingModel.createModel()
+  }
+
+  /** Validate the token from the tweet message */
+  private def isValid(s: String): Boolean = {
+    // @tarek-nawara Only checking for url patterns, mentions, hashtags and retweets
+    // should add more validation criteria in the future see issue #13
+    !(s.contains("http") || s.contains("@") || s.contains("RT") || s.contains("#"))
   }
 
 }
