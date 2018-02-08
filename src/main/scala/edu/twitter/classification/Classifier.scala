@@ -1,5 +1,8 @@
 package edu.twitter.classification
 
+import java.text.SimpleDateFormat
+import java.util.Date
+
 import edu.twitter.model.{GradientBoostingModel, SentimentModelDataCreator, TweetsLoader}
 import edu.twitter.streaming.TwitterStream
 import org.apache.spark.mllib.feature.HashingTF
@@ -8,7 +11,7 @@ import org.apache.spark.streaming.dstream.DStream
 
 /** Representation of the classified tweet, we may add
   * more fields to it later. */
-case class ClassifiedTweet(label: Double, tweetText: String)
+case class ClassifiedTweet(label: Double, tweetText: String, date: String)
 
 /** Responsible for building `TweeterStream` and the `Classification Model`
   * and classifying the stream with the model.
@@ -34,7 +37,7 @@ class Classifier(ssc: StreamingContext) {
       if supportedLangIso(tweet.getLang)
       features = hashingTF.transform(tweet.getText.split(" ").filter(isValid))
       label = model(features)
-    } yield ClassifiedTweet(label, tweet.getText)
+    } yield ClassifiedTweet(label, tweet.getText, getCurrentTime)
 
     classifiedStream
   }
@@ -60,4 +63,11 @@ class Classifier(ssc: StreamingContext) {
     !(s.contains("http") || s.contains("@") || s.contains("RT") || s.contains("#"))
   }
 
+  /** Get the current time to add it as a field to
+    * the classified tweets. */
+  private def getCurrentTime: String = {
+    val dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
+    val date = new Date()
+    dateFormat.format(date)
+  }
 }
