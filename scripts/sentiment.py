@@ -15,18 +15,25 @@ def load_tweets_from_file(path):
         for line in f:
             try:
                 j = line.split('|')[-1]
-                tweets_msg.append(json.loads(j)['msg'])
+                lang = json.loads(j)['lang']
+                if lang == 'en' or lang == 'eng':
+                    tweets_msg.append(json.loads(j)['msg'])
             except ValueError:
                 # You probably have bad JSON
                 continue
     return tweets_msg
 
 
+def is_valid(s):
+    s = s.lower()
+    return all(map(lambda i: i not in s, ['#', '@', 'http', 'rt', 'ftp']))
+
 def clean_tweet(tweet):
     """
     Remove all non ascii characters from the tweet
     """
-    return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
+    return ' '.join(filter(lambda s: is_valid(s), tweet.split(' ')))
+#    return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
     
 
 def get_all_files():

@@ -45,6 +45,7 @@ class Classifier(ssc: StreamingContext) {
 
   /**
     * Create the Classification model.
+    *
     * @return `GenericModel` which is a function to
     *         label the tweets.
     */
