@@ -28,16 +28,23 @@ class Classifier(ssc: StreamingContext) {
     * @return stream of `ClassifiedTweets`
     */
   def createClassifiedStream(): DStream[ClassifiedTweet] = {
+    // @tarek-nawara Only checking for url patterns, mentions, hashtags and retweets
+    // should add more validation criteria in the future see issue #13
+
     val tweets = new TwitterStream(ssc).createStream()
     val model = createModel()
     val hashingTF = new HashingTF(2000)
     val supportedLangIso = Set("en", "eng")
+    val notValidTokens = Set("http", "@", "rt", "#", "RT")
+    val dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
     val classifiedStream = for {
       tweet <- tweets
       if supportedLangIso(tweet.getLang)
-      features = hashingTF.transform(tweet.getText.split(" ").filter(isValid))
+      date = dateFormat.format(new Date())
+      validTokens = tweet.getText.split(" ").filter(!notValidTokens(_))
+      features = hashingTF.transform(validTokens)
       label = model(features)
-    } yield ClassifiedTweet(label, tweet.getText, getCurrentTime)
+    } yield ClassifiedTweet(label, tweet.getText, date)
 
     classifiedStream
   }
@@ -57,18 +64,4 @@ class Classifier(ssc: StreamingContext) {
     gradientBoostingModel.createModel()
   }
 
-  /** Validate the token from the tweet message */
-  private def isValid(s: String): Boolean = {
-    // @tarek-nawara Only checking for url patterns, mentions, hashtags and retweets
-    // should add more validation criteria in the future see issue #13
-    !(s.contains("http") || s.contains("@") || s.contains("RT") || s.contains("#"))
-  }
-
-  /** Get the current time to add it as a field to
-    * the classified tweets. */
-  private def getCurrentTime: String = {
-    val dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
-    val date = new Date()
-    dateFormat.format(date)
-  }
 }
