@@ -64,7 +64,7 @@ class TwitterClient(object):
         return record
 
 
-    def get_tweets(self, query, count = 10):
+    def get_tweets(self, count = 10):
         '''
         Main function to fetch tweets and parse them.
         '''
@@ -73,7 +73,8 @@ class TwitterClient(object):
  
         try:
             # call twitter api to fetch tweets
-            fetched_tweets = self.api.search(q=query, lang='en', count = count)
+            fetched_tweets = self.api.search(q='*', lang='en', count = count)
+
             res = []
             for tweet in fetched_tweets:
                 res.append(self.get_tweet_sentiment(tweet.text))
@@ -82,6 +83,7 @@ class TwitterClient(object):
         except tweepy.TweepError as e:
             # print error (if any)
             print("Error : " + str(e))
+
 
 def read_credentials():
     with open('twitter4j.properties') as f:
@@ -104,6 +106,9 @@ if __name__ == '__main__':
     params = read_credentials()
     api = TwitterClient(params[0], params[1], params[2], params[3])
     # calling function to get tweets
-    tweets = api.get_tweets(query='hello', count = 10)
+    tweets = api.get_tweets(count = 1000)
 
     write_to_file(tweets, ''.join(['tweets-', str(uuid.uuid4()), '.json']))
+
+
+    
