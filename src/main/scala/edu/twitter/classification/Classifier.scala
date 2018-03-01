@@ -35,13 +35,13 @@ class Classifier(ssc: StreamingContext) {
     val model = createModel()
     val hashingTF = new HashingTF(2000)
     val supportedLangIso = Set("en", "eng")
-    val notValidTokens = Set("http", "@", "rt", "#", "RT")
+    val invalidTokens = Set("http", "@", "rt", "#", "RT")
     val dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
     val classifiedStream = for {
       tweet <- tweets
       if supportedLangIso(tweet.getLang)
       date = dateFormat.format(new Date())
-      validTokens = tweet.getText.split(" ").filter(!notValidTokens(_))
+      validTokens = tweet.getText.split(" ").filter(!invalidTokens(_))
       features = hashingTF.transform(validTokens)
       label = model(features)
     } yield ClassifiedTweet(label, tweet.getText, date)
