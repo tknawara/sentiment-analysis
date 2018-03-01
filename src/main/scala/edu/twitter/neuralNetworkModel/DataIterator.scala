@@ -9,8 +9,7 @@ import org.nd4j.linalg.dataset.api.DataSetPreProcessor
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.indexing.{INDArrayIndex, NDArrayIndex}
-import org.apache.spark.sql.{DataFrame, Row}
-
+import org.apache.spark.sql.DataFrame
 
 import java.io.{IOException}
 import java.util
@@ -20,7 +19,7 @@ import scala.collection.JavaConverters._
 
 
 /**
-  * @param data           the tweets
+  * @param data           The labeled tweets
   * @param wordVectors    WordVectors object
   * @param batchSize      Size of each minibatch for training
   * @param truncateLength If reviews exceed
@@ -52,9 +51,9 @@ class DataIterator(val data: DataFrame,
 
   @throws[IOException]
   private def nextDataSet(num: Int): DataSet = {
-    //First: load reviews to String. Alternate positive and negative reviews
-    val reviews = new util.ArrayList[String](num)
-    val positive = new Array[Boolean](num)
+    //First: load reviews to String.
+    val reviews = new util.ArrayList[String]()
+    val positive = new util.ArrayList[Boolean]()
     var i = 0
 
     while (i < num && _cursor < totalExamples) {
@@ -62,8 +61,13 @@ class DataIterator(val data: DataFrame,
       val msg = dataList.get(_cursor).getAs[String]("msg")
       val label = dataList.get(_cursor).getAs[Double]("label")
 
-      reviews.add(msg)
-      positive(i) = if (label == 1.0) true else false
+      //TODO(elhawaty): Find why some rows return null.
+      if (msg != null) {
+        reviews.add(msg)
+        positive.add(if (label == 1.0) true else false)
+      } else {
+        println(dataList.get(_cursor))
+      }
 
       _cursor += 1
       i += 1
@@ -73,8 +77,7 @@ class DataIterator(val data: DataFrame,
     val allTokens: util.List[util.List[String]] = new util.ArrayList[util.List[String]](reviews.size)
     var maxLength: Int = 0
     import scala.collection.JavaConversions._
-    for (s <- reviews; if s != null) {
-      //println(s)
+    for (s <- reviews) {
       val tokens = tokenizerFactory.create(s).getTokens
       val tokensFiltered = new util.ArrayList[String]
       for (t <- tokens.asScala) {
@@ -84,21 +87,28 @@ class DataIterator(val data: DataFrame,
       maxLength = Math.max(maxLength, tokensFiltered.size)
     }
 
+    // Workaround
+    if (maxLength == 0) {
+      println(reviews.get(0))
+      allTokens.get(0).add("times")
+      maxLength = 1;
+    }
+
     //If longest review exceeds 'truncateLength': only take the first 'truncateLength' words
     if (maxLength > truncateLength) maxLength = truncateLength
 
     //Create data for training
     //Here: we have reviews.size() examples of varying lengths
-    val features = Nd4j.create(allTokens.size, vectorSize, maxLength)
-    val labels = Nd4j.create(allTokens.size, 2, maxLength)
+    val features = Nd4j.create(reviews.size, vectorSize, maxLength)
+    val labels = Nd4j.create(reviews.size, 2, maxLength)
     //Two labels: positive or negative
     //Because we are dealing with reviews of different lengths and only one output at the final time step: use padding arrays
     //Mask arrays contain 1 if data is present at that time step for that example, or 0 if data is just padding
-    val featuresMask = Nd4j.zeros(allTokens.size, maxLength)
-    val labelsMask = Nd4j.zeros(allTokens.size, maxLength)
+    val featuresMask = Nd4j.zeros(reviews.size, maxLength)
+    val labelsMask = Nd4j.zeros(reviews.size, maxLength)
 
     val temp = new Array[Int](2)
-    for (i <- allTokens.indices) {
+    for (i <- reviews.indices) {
       val tokens: util.List[String] = allTokens.get(i)
       temp(0) = i
       //Get word vectors for each word in review, and put them in the training data
@@ -112,11 +122,12 @@ class DataIterator(val data: DataFrame,
         featuresMask.putScalar(temp, 1.0) //Word is present (not padding) for this example + time step -> 1.0 in features mask
       }
 
-      val idx = if (positive(i)) 0 else 1
+      val idx = if (positive.get(i)) 0 else 1
       val lastIdx: Int = Math.min(tokens.size, maxLength)
       labels.putScalar(Array[Int](i, idx, lastIdx - 1), 1.0) //Set label: [0,1] for negative, [1,0] for positive
       labelsMask.putScalar(Array[Int](i, lastIdx - 1), 1.0) //Specify that an output exists at the final time step for this example
     }
+
     new DataSet(features, labels, featuresMask, labelsMask)
   }
 
