@@ -28,7 +28,7 @@ class Classifier(ssc: StreamingContext) {
     * @return stream of `ClassifiedTweets`
     */
   def createClassifiedStream(): DStream[ClassifiedTweet] = {
-    // @tarek-nawara Only checking for url patterns, mentions, hashtags and retweets
+    // Only checking for url patterns, mentions, hashtags and retweets
     // should add more validation criteria in the future see issue #13
 
     val tweets = new TwitterStream(ssc).createStream()
