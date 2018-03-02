@@ -3,7 +3,6 @@ package edu.twitter.neuralNetworkModel
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors
 import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.CommonPreprocessor
 import org.deeplearning4j.text.tokenization.tokenizerfactory.{DefaultTokenizerFactory, TokenizerFactory}
-import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.dataset.DataSet
 import org.nd4j.linalg.dataset.api.DataSetPreProcessor
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator
@@ -176,27 +175,4 @@ class DataIterator(val data: DataFrame,
   def getPreProcessor: DataSetPreProcessor =
     throw new UnsupportedOperationException("Not implemented")
 
-  /**
-    * Used post training to convert a String to a features INDArray that can be passed to the network output method
-    *
-    * @param reviewContents Contents of the review to vectorize
-    * @param maxLength      Maximum length (if review is longer than this: truncate to maxLength). Use Integer.MAX_VALUE to not nruncate
-    * @return Features array for the given input String
-    */
-  def loadFeaturesFromString(reviewContents: String, maxLength: Int): INDArray = {
-    val tokens = tokenizerFactory.create(reviewContents).getTokens
-    val tokensFiltered = new util.ArrayList[String]
-    for (t <- tokens.asScala) {
-      if (wordVectors.hasWord(t)) tokensFiltered.add(t)
-    }
-    val outputLength = Math.max(maxLength, tokensFiltered.size)
-
-    val features = Nd4j.create(1, vectorSize, outputLength)
-    for (j <- 0 until math.min(tokens.size, maxLength)) {
-      val token = tokens.get(j)
-      val vector = wordVectors.getWordVectorMatrix(token)
-      features.put(Array[INDArrayIndex](NDArrayIndex.point(0), NDArrayIndex.all, NDArrayIndex.point(j)), vector)
-    }
-    features
-  }
 }

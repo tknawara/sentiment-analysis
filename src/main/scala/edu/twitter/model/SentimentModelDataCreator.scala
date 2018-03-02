@@ -9,12 +9,14 @@ import scala.util.Try
 
 /**
   * Get training and testing data model from tweetsRDD
+  *
   * @param tweetsRDD RDD contain stream of tweets
   */
 class SentimentModelDataCreator(tweetsRDD: RDD[Row]) {
 
   /**
     * Label and transform tweets to be suitable for gradient boosting then split it to training and testing data sets.
+    *
     * @return training data set, testing data set
     */
   def getTrainingAndTestingData(): (RDD[LabeledPoint], RDD[LabeledPoint]) = {
@@ -68,21 +70,22 @@ class SentimentModelDataCreator(tweetsRDD: RDD[Row]) {
     * label each happy tweet as 1 and unhappy tweets as 0. In order to prevent our model from cheating,
     * remove the words happy and sad from the tweets.This will force it to infer whether the user is happy or
     * sad by the presence of other words.
+    *
     * @return labeled data
     */
   private def getLabeledRecords(): RDD[Try[(Int, Seq[String])]] = {
     tweetsRDD.map(
-      row =>{
-        Try{
+      row => {
+        Try {
           val msg = row(0).toString.toLowerCase()
-          var isHappy:Int = 0
-          if(msg.contains(" sad")){
+          var isHappy: Int = 0
+          if (msg.contains(" sad")) {
             isHappy = 0
-          }else if(msg.contains("happy")){
+          } else if (msg.contains("happy")) {
             isHappy = 1
           }
           var msgSanitized = msg.replaceAll("happy", "")
-          msgSanitized = msgSanitized.replaceAll("sad","")
+          msgSanitized = msgSanitized.replaceAll("sad", "")
           //Return a tuple
           (isHappy, msgSanitized.split(" ").toSeq)
         }

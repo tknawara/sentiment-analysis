@@ -8,6 +8,7 @@ import org.apache.spark.rdd.RDD
 
 /**
   * Build and evaluate a gradient boosting model from training and testing data set.
+  *
   * @param trainingData
   * @param validationData
   */
@@ -22,8 +23,9 @@ class GradientBoostingModel(trainingData: RDD[LabeledPoint], validationData: RDD
     * tends to have a high classification accuracy. For this reason it is frequently
     * used in machine learning competitions.
     * The tuning parameters we’re using here are:
-        -number of iterations (passes over the data)
-        -Max Depth of each decision tree
+    * -number of iterations (passes over the data)
+    * -Max Depth of each decision tree
+    *
     * @return sentiment classification model
     */
   def createModel(): GenericModel = {
@@ -42,6 +44,7 @@ class GradientBoostingModel(trainingData: RDD[LabeledPoint], validationData: RDD
 
   /**
     * Evaluate the model by printing some analysis.
+    *
     * @param model model needed to be evaluated
     */
   private def evaluate(model: GradientBoostedTreesModel): Unit = {
@@ -68,8 +71,9 @@ class GradientBoostingModel(trainingData: RDD[LabeledPoint], validationData: RDD
 
   /**
     * Print evaluation of model giving labeled data.
+    *
     * @param labelAndPreds labeled data (0 sad , 1 happy)
-    * @param setType is data training or validation data
+    * @param setType       is data training or validation data
     */
   private def printEvaluation(labelAndPreds: RDD[(Double, Double)], setType: String, data: RDD[LabeledPoint]): Unit = {
     var results = labelAndPreds.collect()
@@ -85,7 +89,7 @@ class GradientBoostingModel(trainingData: RDD[LabeledPoint], validationData: RDD
         } else if (r._1 == 0) {
           unhappyTotal += 1
         }
-        if (r._1 == 1 && r._2 ==1) {
+        if (r._1 == 1 && r._2 == 1) {
           happyCorrect += 1
         } else if (r._1 == 0 && r._2 == 0) {
           unhappyCorrect += 1
@@ -93,8 +97,8 @@ class GradientBoostingModel(trainingData: RDD[LabeledPoint], validationData: RDD
       }
     )
     println("unhappy messages in " + setType + " Set: " + unhappyTotal + " happy messages: " + happyTotal)
-    println("happy % correct: " + happyCorrect.toDouble/happyTotal)
-    println("unhappy % correct: " + unhappyCorrect.toDouble/unhappyTotal)
+    println("happy % correct: " + happyCorrect.toDouble / happyTotal)
+    println("unhappy % correct: " + unhappyCorrect.toDouble / unhappyTotal)
 
     var testErr = labelAndPreds.filter(r => r._1 != r._2).count.toDouble / data.count()
     println("Test Error " + setType + " Set: " + testErr)
