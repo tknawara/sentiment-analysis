@@ -30,20 +30,19 @@ class ModelEvaluator(sc: SparkContext) {
     } yield (actualLabel, modelPrediction)
 
 
-    val EvaluationFields(happyCorrect, happyTotal, sadCorrect, sadTotal) =
-      evaluation.aggregate(EvaluationFields(0, 0, 0, 0))(
-        (evaluationFields, p) => (evaluationFields, p) match {
-          case (e, (1, 1)) => evaluationFields.copy(happyCorrect = evaluationFields.happyCorrect + 1, happyTotal = evaluationFields.happyTotal + 1)
-          case (e, (1, 0)) => evaluationFields.copy(happyCorrect = evaluationFields.happyCorrect + 1, happyTotal = evaluationFields.happyTotal + 1)
-          case (e, (0, 1)) => evaluationFields.copy(happyCorrect = evaluationFields.happyCorrect + 1, happyTotal = evaluationFields.happyTotal + 1)
-          case (e, (0, 0)) => evaluationFields.copy(happyCorrect = evaluationFields.happyCorrect + 1, happyTotal = evaluationFields.happyTotal + 1)
-        },
-        (e1, e2) => e1 + e2
-      )
+    val e = evaluation.aggregate(EvaluationFields(0, 0, 0, 0))(
+      (e, p) => p match {
+        case (1, 1) => e.copy(happyCorrect = e.happyCorrect + 1, happyTotal = e.happyTotal + 1)
+        case (1, 0) => e.copy(happyCorrect = e.happyCorrect + 1, happyTotal = e.happyTotal + 1)
+        case (0, 1) => e.copy(happyCorrect = e.happyCorrect + 1, happyTotal = e.happyTotal + 1)
+        case (0, 0) => e.copy(happyCorrect = e.happyCorrect + 1, happyTotal = e.happyTotal + 1)
+      },
+      (e1, e2) => e1 + e2
+    )
 
-    println("sad messages= " + sadTotal + " happy messages: " + happyTotal)
-    println("happy % correct: " + happyCorrect.toDouble / happyTotal)
-    println("sad % correct: " + sadCorrect.toDouble / sadTotal)
+    println("sad messages= " + e.sadTotal + " happy messages: " + e.happyTotal)
+    println("happy % correct: " + e.happyCorrect.toDouble / e.happyTotal)
+    println("sad % correct: " + e.sadCorrect.toDouble / e.sadTotal)
 
     val recordCount = evaluation.count()
     var testErr = evaluation.filter(r => r._1 != r._2).count.toDouble / recordCount
