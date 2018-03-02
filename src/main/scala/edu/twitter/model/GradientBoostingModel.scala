@@ -35,7 +35,7 @@ class GradientBoostingModel(trainingData: RDD[LabeledPoint], validationData: RDD
     //Lower numbers create a simpler model, which can be more accurate.
     //In practice you have to tweak this number to find the best value.
 
-    var model = GradientBoostedTrees.train(trainingData, boostingStrategy)
+    val model = GradientBoostedTrees.train(trainingData, boostingStrategy)
     evaluate(model)
     (features: org.apache.spark.mllib.linalg.Vector) => model.predict(features)
   }
@@ -97,6 +97,7 @@ class GradientBoostingModel(trainingData: RDD[LabeledPoint], validationData: RDD
     println("unhappy % correct: " + unhappyCorrect.toDouble/unhappyTotal)
 
     var testErr = labelAndPreds.filter(r => r._1 != r._2).count.toDouble / data.count()
+    println("data size=" + data.count())
     println("Test Error " + setType + " Set: " + testErr)
   }
 }

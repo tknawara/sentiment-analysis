@@ -16,12 +16,9 @@ class TweetsLoader(sc: SparkContext) {
     * @return RDD contains stream of tweets
     */
   def getTweetsDataSet(): RDD[Row] = {
-    val dataPath = this.getClass.getClassLoader.getResource("tweets").getPath
-
-    var tweetDF = tweetsJsonParser.parse(dataPath)
-    var messages = tweetDF.select("msg")
-    println("Total messages: " + messages.count())
-    cleanRecords(messages)
+    val dataPath = this.getClass.getClassLoader.getResource("labeled-tweets").getPath
+    val tweetDF = tweetsJsonParser.parse(dataPath)
+    cleanRecords(tweetDF)
   }
 
   /**
@@ -33,15 +30,14 @@ class TweetsLoader(sc: SparkContext) {
     * @return tweets that contain happy word , tweets contains sad word
     */
   private def cleanRecords(messages: DataFrame) : RDD[Row] = {
-    var happyMessages = messages.filter(messages("msg").contains("happy"))
+    val happyMessages = messages.filter(messages("label").contains("1.0"))
     val countHappy = happyMessages.count()
     println("Number of happy messages: " +  countHappy)
 
-    var unhappyMessages = messages.filter(messages("msg").contains(" sad"))
+    val unhappyMessages = messages.filter(messages("label").contains("0.0"))
     val countUnhappy = unhappyMessages.count()
     println("Unhappy Messages: " + countUnhappy)
     val smallest = Math.min(countHappy, countUnhappy).toInt
-    //Create a dataset with equal parts happy and unhappy messages
     happyMessages.limit(smallest).union(unhappyMessages.limit(smallest)).rdd
   }
 }

@@ -1,5 +1,8 @@
 package edu.twitter.classification
 
+import java.text.SimpleDateFormat
+import java.util.Date
+
 import edu.twitter.model.{GradientBoostingModel, SentimentModelDataCreator, TweetsLoader}
 import edu.twitter.streaming.TwitterStream
 import org.apache.spark.mllib.feature.HashingTF
@@ -8,7 +11,7 @@ import org.apache.spark.streaming.dstream.DStream
 
 /** Representation of the classified tweet, we may add
   * more fields to it later. */
-case class ClassifiedTweet(label: Double, tweetText: String)
+case class ClassifiedTweet(label: Double, tweetText: String, date: String)
 
 /** Responsible for building `TweeterStream` and the `Classification Model`
   * and classifying the stream with the model.
@@ -25,16 +28,23 @@ class Classifier(ssc: StreamingContext) {
     * @return stream of `ClassifiedTweets`
     */
   def createClassifiedStream(): DStream[ClassifiedTweet] = {
+    // Only checking for url patterns, mentions, hashtags and retweets
+    // should add more validation criteria in the future see issue #13
+
     val tweets = new TwitterStream(ssc).createStream()
     val model = createModel()
     val hashingTF = new HashingTF(2000)
     val supportedLangIso = Set("en", "eng")
+    val invalidTokens = Set("http", "@", "rt", "#", "RT")
+    val dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
     val classifiedStream = for {
       tweet <- tweets
       if supportedLangIso(tweet.getLang)
-      features = hashingTF.transform(tweet.getText.split(" "))
+      date = dateFormat.format(new Date())
+      validTokens = tweet.getText.split(" ").filter(!invalidTokens(_))
+      features = hashingTF.transform(validTokens)
       label = model(features)
-    } yield ClassifiedTweet(label, tweet.getText)
+    } yield ClassifiedTweet(label, tweet.getText, date)
 
     classifiedStream
   }
@@ -42,6 +52,7 @@ class Classifier(ssc: StreamingContext) {
 
   /**
     * Create the Classification model.
+    *
     * @return `GenericModel` which is a function to
     *         label the tweets.
     */

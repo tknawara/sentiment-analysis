@@ -9,29 +9,24 @@ import scala.util.Try
 
 /**
   * Get training and testing data model from tweetsRDD
+  *
   * @param tweetsRDD RDD contain stream of tweets
   */
 class SentimentModelDataCreator(tweetsRDD: RDD[Row]) {
 
   /**
-    * Label and transform tweets to be suitable for gradient boosting then split it to training and testing data sets.
+    * Load the labeled tweets then transform each tweet's text to
+    * a feature vector using a suitable transformation function
+    *
     * @return training data set, testing data set
     */
   def getTrainingAndTestingData(): (RDD[LabeledPoint], RDD[LabeledPoint]) = {
-
     //We use scala's Try to filter out tweets that couldn't be parsed
-    val goodBadRecords = getLabeledRecords()
-    //We use this syntax to filter out exceptions
-    val exceptions = goodBadRecords.filter(_.isFailure)
-    println("total records with exceptions: " + exceptions.count())
-    exceptions.take(10).foreach(x => println(x.failed))
-    val labeledTweets = goodBadRecords.filter((_.isSuccess)).map(_.get)
-    println("total records with successes: " + labeledTweets.count())
-
-    val input_labeled: RDD[LabeledPoint] = transformData(labeledTweets)
+    val labeledTweets = getLabeledRecords()
+    val transformedTweets = transformData(labeledTweets)
 
     // Split the data into training and validation sets (30% held out for validation testing)
-    val splits = input_labeled.randomSplit(Array(0.7, 0.3))
+    val splits = transformedTweets.randomSplit(Array(0.7, 0.3))
     (splits(0), splits(1))
   }
 
@@ -53,40 +48,27 @@ class SentimentModelDataCreator(tweetsRDD: RDD[Row]) {
     * @param labeledTweets
     * @return RDD of label (0 , 1) and sparse vector (ex: (1.0,(2000,[105,1139,1707,1872,1964],[1.0,1.0,1.0,1.0,1.0])))
     */
-  def transformData(labeledTweets: RDD[(Int, Seq[String])]): RDD[LabeledPoint] = {
+  def transformData(labeledTweets: RDD[(Double, Seq[String])]): RDD[LabeledPoint] = {
     //Transform data
     val hashingTF = new HashingTF(2000)
 
     //Map the input strings to a tuple of labeled point + input text
     val inputLabeled = labeledTweets.map(
       t => (t._1, hashingTF.transform(t._2)))
-      .map(x => new LabeledPoint((x._1).toDouble, x._2))
+      .map(x => new LabeledPoint(x._1, x._2))
     inputLabeled
   }
 
   /**
-    * label each happy tweet as 1 and unhappy tweets as 0. In order to prevent our model from cheating,
-    * remove the words happy and sad from the tweets.This will force it to infer whether the user is happy or
-    * sad by the presence of other words.
+    * Load the labeled tweets.
+    *
     * @return labeled data
     */
-  private def getLabeledRecords(): RDD[Try[(Int, Seq[String])]] = {
-    tweetsRDD.map(
-      row =>{
-        Try{
-          val msg = row(0).toString.toLowerCase()
-          var isHappy:Int = 0
-          if(msg.contains(" sad")){
-            isHappy = 0
-          }else if(msg.contains("happy")){
-            isHappy = 1
-          }
-          var msgSanitized = msg.replaceAll("happy", "")
-          msgSanitized = msgSanitized.replaceAll("sad","")
-          //Return a tuple
-          (isHappy, msgSanitized.split(" ").toSeq)
-        }
-      }
-    )
+  private def getLabeledRecords(): RDD[(Double, Seq[String])] = {
+    val labeledTweets = tweetsRDD.map {
+      record => (record.getAs[Double]("label"), record.getAs[String]("msg").split(" ").toSeq)
+    }
+
+    labeledTweets
   }
 }
