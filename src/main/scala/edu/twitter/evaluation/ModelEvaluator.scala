@@ -1,6 +1,7 @@
 package edu.twitter.evaluation
 
-import edu.twitter.model.{GradientBoostingModel, TweetsLoader}
+import edu.twitter.model.TweetsLoader
+import edu.twitter.model_api.GenericModel
 import org.apache.spark.SparkContext
 import org.apache.spark.mllib.feature.HashingTF
 
@@ -18,7 +19,7 @@ case class EvaluationFields(happyCorrect: Int, happyTotal: Int, sadCorrect: Int,
 }
 
 class ModelEvaluator(sc: SparkContext) {
-  def evaluate(model: GradientBoostingModel#GenericModel): Unit = {
+  def evaluate(model: GenericModel): Unit = {
     val tweetsLoader = new TweetsLoader(sc)
     val hashingTF = new HashingTF(2000)
 
