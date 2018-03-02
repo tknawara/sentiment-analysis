@@ -21,6 +21,7 @@ class ModelEvaluator(sc: SparkContext) {
   def evaluate(model: GradientBoostingModel#GenericModel): Unit = {
     val tweetsLoader = new TweetsLoader(sc)
     val hashingTF = new HashingTF(2000)
+
     val evaluation = for {
       row <- tweetsLoader.getTweetsDataSet()
       actualLabel = row.getAs[Double]("label")
@@ -33,9 +34,9 @@ class ModelEvaluator(sc: SparkContext) {
     val e = evaluation.aggregate(EvaluationFields(0, 0, 0, 0))(
       (e, p) => p match {
         case (1, 1) => e.copy(happyCorrect = e.happyCorrect + 1, happyTotal = e.happyTotal + 1)
-        case (1, 0) => e.copy(happyCorrect = e.happyCorrect + 1, happyTotal = e.happyTotal + 1)
-        case (0, 1) => e.copy(happyCorrect = e.happyCorrect + 1, happyTotal = e.happyTotal + 1)
-        case (0, 0) => e.copy(happyCorrect = e.happyCorrect + 1, happyTotal = e.happyTotal + 1)
+        case (1, 0) => e.copy(happyTotal = e.happyTotal + 1)
+        case (0, 1) => e.copy(sadTotal = e.sadTotal + 1)
+        case (0, 0) => e.copy(sadCorrect = e.sadCorrect + 1, sadTotal = e.sadTotal + 1)
       },
       (e1, e2) => e1 + e2
     )
