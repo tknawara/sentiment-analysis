@@ -29,10 +29,10 @@ class TweetsLoader(sc: SparkContext) {
     * @param messages All tweets text fields
     * @return tweets that contain happy word , tweets contains sad word
     */
-  private def cleanRecords(messages: DataFrame) : RDD[Row] = {
+  private def cleanRecords(messages: DataFrame): RDD[Row] = {
     val happyMessages = messages.filter(messages("label").contains("1.0"))
     val countHappy = happyMessages.count()
-    println("Number of happy messages: " +  countHappy)
+    println("Number of happy messages: " + countHappy)
 
     val unhappyMessages = messages.filter(messages("label").contains("0.0"))
     val countUnhappy = unhappyMessages.count()

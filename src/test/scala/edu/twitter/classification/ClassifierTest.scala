@@ -1,5 +1,6 @@
 package edu.twitter.classification
 
+import edu.twitter.model.GradientBoostingBuilder
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext}
 
@@ -10,7 +11,7 @@ object ClassifierTest {
     val ssc = new StreamingContext(sc, Seconds(10))
 
     val classifier = new Classifier(ssc)
-    val classifiedStream = classifier.createClassifiedStream()
+    val classifiedStream = classifier.createClassifiedStream(new GradientBoostingBuilder(sc))
     classifiedStream.foreachRDD(rdd => rdd.take(10).foreach(println(_)))
 
     ssc.start()

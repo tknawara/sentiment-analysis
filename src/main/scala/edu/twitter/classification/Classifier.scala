@@ -3,9 +3,8 @@ package edu.twitter.classification
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import edu.twitter.model.{GradientBoostingModel, SentimentModelDataCreator, TweetsLoader}
+import edu.twitter.model_api.GenericModelBuilder
 import edu.twitter.streaming.TwitterStream
-import org.apache.spark.mllib.feature.HashingTF
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
 
@@ -27,41 +26,21 @@ class Classifier(ssc: StreamingContext) {
     *
     * @return stream of `ClassifiedTweets`
     */
-  def createClassifiedStream(): DStream[ClassifiedTweet] = {
+  def createClassifiedStream(genericModelBuilder: GenericModelBuilder): DStream[ClassifiedTweet] = {
     // Only checking for url patterns, mentions, hashtags and retweets
     // should add more validation criteria in the future see issue #13
 
     val tweets = new TwitterStream(ssc).createStream()
-    val model = createModel()
-    val hashingTF = new HashingTF(2000)
+    val model = genericModelBuilder.build()
     val supportedLangIso = Set("en", "eng")
-    val invalidTokens = Set("http", "@", "rt", "#", "RT")
     val dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
     val classifiedStream = for {
       tweet <- tweets
       if supportedLangIso(tweet.getLang)
       date = dateFormat.format(new Date())
-      validTokens = tweet.getText.split(" ").filter(!invalidTokens(_))
-      features = hashingTF.transform(validTokens)
-      label = model(features)
+      label = model.getLabel(tweet.getText)
     } yield ClassifiedTweet(label, tweet.getText, date)
 
     classifiedStream
   }
-
-
-  /**
-    * Create the Classification model.
-    *
-    * @return `GenericModel` which is a function to
-    *         label the tweets.
-    */
-  private def createModel(): GradientBoostingModel#GenericModel = {
-    val tweetsLoader = new TweetsLoader(ssc.sparkContext)
-    val twitterData = new SentimentModelDataCreator(tweetsLoader.getTweetsDataSet())
-    val (trainingSet, testingSet) = twitterData.getTrainingAndTestingData()
-    val gradientBoostingModel = new GradientBoostingModel(trainingSet, testingSet)
-    gradientBoostingModel.createModel()
-  }
-
 }

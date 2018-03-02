@@ -5,8 +5,6 @@ import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
 
-import scala.util.Try
-
 /**
   * Get training and testing data model from tweetsRDD
   *

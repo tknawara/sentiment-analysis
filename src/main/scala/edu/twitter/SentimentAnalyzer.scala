@@ -1,8 +1,9 @@
 package edu.twitter
 
 import edu.twitter.classification.Classifier
-import org.apache.spark.{SparkConf, SparkContext}
+import edu.twitter.model.GradientBoostingBuilder
 import org.apache.spark.streaming.{Seconds, StreamingContext}
+import org.apache.spark.{SparkConf, SparkContext}
 import org.elasticsearch.spark.rdd.EsSpark
 
 /**
@@ -20,7 +21,7 @@ object SentimentAnalyzer extends App {
   val ssc = new StreamingContext(sc, Seconds(10))
 
   val classifier = new Classifier(ssc)
-  val classifiedStream = classifier.createClassifiedStream()
+  val classifiedStream = classifier.createClassifiedStream(new GradientBoostingBuilder(sc))
   classifiedStream.foreachRDD(EsSpark.saveToEs(_, "twitter/sentiment"))
 
   ssc.start()
