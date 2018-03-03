@@ -74,15 +74,12 @@ class ModelEvaluator(sc: SparkContext) {
     */
   private def evaluateData(model: GenericModel): RDD[EvaluatedTrainingTweet] = {
     val tweetsLoader = new TweetsLoader(sc)
-    val hashingTF = new HashingTF(2000)
 
     val evaluation = for {
       row <- tweetsLoader.getTweetsDataSet()
       actualLabel = row.getAs[Double]("label")
       tweetText = row.getAs[String]("msg")
-      tokens = tweetText.split(" ").toSeq
-      features = hashingTF.transform(tokens)
-      modelPrediction = model(features)
+      modelPrediction = model.getLabel(tweetText)
     } yield EvaluatedTrainingTweet(actualLabel, modelPrediction, tweetText)
 
     evaluation
