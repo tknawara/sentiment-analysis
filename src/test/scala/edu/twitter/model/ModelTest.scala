@@ -9,11 +9,6 @@ object ModelTest {
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf().setMaster("local[*]").setAppName("Twitter")
     val sc = new SparkContext(conf)
-
-    var tweetsLoader = new TweetsLoader(sc)
-    var twitterData = new SentimentModelDataCreator(tweetsLoader.getTweetsDataSet())
-    var (trainingSet , testingSet) = twitterData.getTrainingAndTestingData()
-    var gradientBoostingModel = new GradientBoostingModel(trainingSet, testingSet)
-    gradientBoostingModel.createModel()
+    new GradientBoostingBuilder(sc).build()
   }
 }
