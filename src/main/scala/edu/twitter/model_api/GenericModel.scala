@@ -8,7 +8,7 @@ trait GenericModel {
   /**
     * Classify the given tweet.
     *
-    * @param tweetText
+    * @param tweetText target tweet message for classification.
     * @return 0 for sad & 1 for happy
     */
   def getLabel(tweetText: String): Double

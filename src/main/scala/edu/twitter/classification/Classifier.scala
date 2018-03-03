@@ -24,6 +24,8 @@ class Classifier(ssc: StreamingContext) {
     * Build the `Classification Model` and a `TweeterStream`
     * and return a stream of `ClassifiedTweets`.
     *
+    * @param genericModelBuilder the instance holding the recipe for
+    *                            building the model.
     * @return stream of `ClassifiedTweets`
     */
   def createClassifiedStream(genericModelBuilder: GenericModelBuilder): DStream[ClassifiedTweet] = {

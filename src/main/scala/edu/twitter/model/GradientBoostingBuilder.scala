@@ -28,12 +28,9 @@ class GradientBoostingBuilder(sc: SparkContext) extends GenericModelBuilder {
     val (trainingSet, testSet) = twitterData.getTrainingAndTestingData()
 
     val boostingStrategy = BoostingStrategy.defaultParams("Classification")
-    boostingStrategy.setNumIterations(20) //number of passes over our training data
-    boostingStrategy.treeStrategy.setNumClasses(2) //We have two output classes: happy and sad
+    boostingStrategy.setNumIterations(20)
+    boostingStrategy.treeStrategy.setNumClasses(2)
     boostingStrategy.treeStrategy.setMaxDepth(5)
-    //Depth of each tree. Higher numbers mean more parameters, which can cause overfitting.
-    //Lower numbers create a simpler model, which can be more accurate.
-    //In practice you have to tweak this number to find the best value.
 
     var model = GradientBoostedTrees.train(trainingSet, boostingStrategy)
     new GradientBoostingModel(model)

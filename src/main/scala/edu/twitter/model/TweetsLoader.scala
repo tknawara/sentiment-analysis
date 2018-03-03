@@ -18,18 +18,17 @@ class TweetsLoader(sc: SparkContext) {
   def getTweetsDataSet(): RDD[Row] = {
     val dataPath = this.getClass.getClassLoader.getResource("labeled-tweets").getPath
     val tweetDF = tweetsJsonParser.parse(dataPath)
-    cleanRecords(tweetDF)
+    equalizeDataSet(tweetDF)
   }
 
   /**
-    * Get only tweets that contains happy and sad words and use the presence of these words as our labels.
-    * This isn’t perfect: a few sentences like “I’m not happy” will end up being incorrectly labeled as happy.
-    * If you wanted more accurate labeled data, you could use a part of speech tagger like Stanford NLP or SyntaxNet.
+    * Equalize the number of happy and sad tweets in the data set to
+    * avoid any overfitting.
     *
     * @param messages All tweets text fields
     * @return tweets that contain happy word , tweets contains sad word
     */
-  private def cleanRecords(messages: DataFrame): RDD[Row] = {
+  private def equalizeDataSet(messages: DataFrame): RDD[Row] = {
     val happyMessages = messages.filter(messages("label").contains("1.0"))
     val countHappy = happyMessages.count()
     println("Number of happy messages: " + countHappy)
