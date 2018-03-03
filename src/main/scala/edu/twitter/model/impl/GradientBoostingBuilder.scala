@@ -1,9 +1,12 @@
-package edu.twitter.model
+package edu.twitter.model.impl
 
-import edu.twitter.model_api.{GenericModel, GenericModelBuilder}
+import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
+import edu.twitter.model.evaluation.{ModelEvaluator, Record}
 import org.apache.spark.SparkContext
+import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.tree.GradientBoostedTrees
 import org.apache.spark.mllib.tree.configuration.BoostingStrategy
+import org.apache.spark.rdd.RDD
 
 /**
   * Build and evaluate a gradient boosting model from training and testing data set.
@@ -23,6 +26,9 @@ class GradientBoostingBuilder(sc: SparkContext) extends GenericModelBuilder {
     * @return GenericModel
     */
   def build(): GenericModel = {
+    implicit def toRecords(data: RDD[(String, LabeledPoint)]): RDD[Record] = data.map { case (msg, p) => Record(msg, p.label) }
+    implicit def toLabeledPoint(data: RDD[(String, LabeledPoint)]): RDD[LabeledPoint] = data.map(_._2)
+
     val tweetsLoader = new TweetsLoader(sc)
     val twitterData = new SentimentModelDataCreator(tweetsLoader.getTweetsDataSet())
     val (trainingSet, testSet) = twitterData.getTrainingAndTestingData()
@@ -32,7 +38,10 @@ class GradientBoostingBuilder(sc: SparkContext) extends GenericModelBuilder {
     boostingStrategy.treeStrategy.setNumClasses(2)
     boostingStrategy.treeStrategy.setMaxDepth(5)
 
-    var model = GradientBoostedTrees.train(trainingSet, boostingStrategy)
-    new GradientBoostingModel(model)
+    val model = GradientBoostedTrees.train(trainingSet, boostingStrategy)
+    val genericModel = new GradientBoostingModel(model)
+    val modelEvaluator = new ModelEvaluator(sc)
+    modelEvaluator.evaluate(genericModel, trainingSet, testSet)
+    genericModel
   }
 }

@@ -1,4 +1,4 @@
-package edu.twitter.model_api
+package edu.twitter.model.api
 
 /**
   * A generic interface for the object responsable for creating any model.

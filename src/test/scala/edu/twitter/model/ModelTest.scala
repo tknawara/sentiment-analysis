@@ -1,5 +1,6 @@
 package edu.twitter.model
 
+import edu.twitter.model.impl.GradientBoostingBuilder
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**

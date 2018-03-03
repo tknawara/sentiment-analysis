@@ -1,4 +1,4 @@
-package edu.twitter.model
+package edu.twitter.model.impl
 
 import org.apache.spark.mllib.feature.HashingTF
 import org.apache.spark.mllib.regression.LabeledPoint
@@ -18,7 +18,7 @@ class SentimentModelDataCreator(tweetsRDD: RDD[Row]) {
     *
     * @return training data set, testing data set
     */
-  def getTrainingAndTestingData(): (RDD[LabeledPoint], RDD[LabeledPoint]) = {
+  def getTrainingAndTestingData(): (RDD[(String, LabeledPoint)], RDD[(String, LabeledPoint)]) = {
     //We use scala's Try to filter out tweets that couldn't be parsed
     val labeledTweets = getLabeledRecords()
     val transformedTweets = transformData(labeledTweets)
@@ -46,14 +46,14 @@ class SentimentModelDataCreator(tweetsRDD: RDD[Row]) {
     * @param labeledTweets
     * @return RDD of label (0 , 1) and sparse vector (ex: (1.0,(2000,[105,1139,1707,1872,1964],[1.0,1.0,1.0,1.0,1.0])))
     */
-  def transformData(labeledTweets: RDD[(Double, Seq[String])]): RDD[LabeledPoint] = {
-    //Transform data
+  def transformData(labeledTweets: RDD[(Double, String)]): RDD[(String, LabeledPoint)] = {
     val hashingTF = new HashingTF(2000)
 
-    //Map the input strings to a tuple of labeled point + input text
-    val inputLabeled = labeledTweets.map(
-      t => (t._1, hashingTF.transform(t._2)))
-      .map(x => new LabeledPoint(x._1, x._2))
+    val inputLabeled = labeledTweets.map {
+      case (label, msg) =>
+        val features = hashingTF.transform(msg.split(" "))
+        (msg, new LabeledPoint(label, features))
+    }
     inputLabeled
   }
 
@@ -62,9 +62,9 @@ class SentimentModelDataCreator(tweetsRDD: RDD[Row]) {
     *
     * @return labeled data
     */
-  private def getLabeledRecords(): RDD[(Double, Seq[String])] = {
+  private def getLabeledRecords(): RDD[(Double, String)] = {
     val labeledTweets = tweetsRDD.map {
-      record => (record.getAs[Double]("label"), record.getAs[String]("msg").split(" ").toSeq)
+      record => (record.getAs[Double]("label"), record.getAs[String]("msg"))
     }
 
     labeledTweets

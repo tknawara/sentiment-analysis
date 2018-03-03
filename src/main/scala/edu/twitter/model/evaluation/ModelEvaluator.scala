@@ -1,11 +1,15 @@
-package edu.twitter.evaluation
+package edu.twitter.model.evaluation
 
-import edu.twitter.model.TweetsLoader
-import edu.twitter.model_api.GenericModel
+import edu.twitter.model.api.GenericModel
+import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
-import org.apache.spark.mllib.feature.HashingTF
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.Row
 import org.elasticsearch.spark.rdd.EsSpark
+
+/** Representation of the records used for training
+  * and testing the model. */
+case class Record(tweetText: String, actualLabel: Double)
 
 /** Grouping of the evaluation necessary fields
   * these fields are used for evaluating the training error. */
@@ -49,8 +53,24 @@ class ModelEvaluator(sc: SparkContext) {
     * @param model target model for evaluation.
     */
   def evaluate(model: GenericModel): Unit = {
-    val evaluation = evaluateData(model)
+    val tweetsLoader = new TweetsLoader(sc)
+    val evaluation = evaluateData(model, tweetsLoader.getTweetsDataSet())
     performEvaluationAnalysis(evaluation)
+  }
+
+  /**
+    * Given a model and its training, testing data. this method
+    * will measure how will the model will perform.
+    *
+    * @param model             target model for evaluation
+    * @param trainingRecords   model's training data
+    * @param validationRecords model's validation data
+    */
+  def evaluate(model: GenericModel, trainingRecords: RDD[Record], validationRecords: RDD[Record]): Unit = {
+    val trainingEvaluation = evaluateRecords(model, trainingRecords)
+    val validationEvaluation = evaluateRecords(model, validationRecords)
+    performEvaluationAnalysis(trainingEvaluation, "Training")
+    performEvaluationAnalysis(validationEvaluation)
   }
 
   /**
@@ -61,9 +81,27 @@ class ModelEvaluator(sc: SparkContext) {
     * @param model target model for evaluation
     */
   def evaluateAndPersist(model: GenericModel): Unit = {
-    val evaluation = evaluateData(model)
+    val tweetsLoader = new TweetsLoader(sc)
+    val evaluation = evaluateData(model, tweetsLoader.getTweetsDataSet())
     performEvaluationAnalysis(evaluation)
     EsSpark.saveToEs(evaluation, "training-analysis")
+  }
+
+  /**
+    * Show how the model will perform against the given data.
+    *
+    * @param model target model for evaluation
+    * @param data  evaluation data
+    * @return rdd of `EvaluatedTrainingTweet`
+    */
+  private def evaluateData(model: GenericModel, data: RDD[Row]): RDD[EvaluatedTrainingTweet] = {
+    val transformedData = for {
+      row <- data
+      actualLabel = row.getAs[Double]("label")
+      tweetText = row.getAs[String]("msg")
+    } yield Record(tweetText, actualLabel)
+
+    evaluateRecords(model, transformedData)
   }
 
   /**
@@ -72,15 +110,11 @@ class ModelEvaluator(sc: SparkContext) {
     * @param model target model for evaluation
     * @return rdd of `EvaluatedTrainingTweet` instances.
     */
-  private def evaluateData(model: GenericModel): RDD[EvaluatedTrainingTweet] = {
-    val tweetsLoader = new TweetsLoader(sc)
-
+  private def evaluateRecords(model: GenericModel, data: RDD[Record]): RDD[EvaluatedTrainingTweet] = {
     val evaluation = for {
-      row <- tweetsLoader.getTweetsDataSet()
-      actualLabel = row.getAs[Double]("label")
-      tweetText = row.getAs[String]("msg")
-      modelPrediction = model.getLabel(tweetText)
-    } yield EvaluatedTrainingTweet(actualLabel, modelPrediction, tweetText)
+      r <- data
+      modelPrediction = model.getLabel(r.tweetText)
+    } yield EvaluatedTrainingTweet(r.actualLabel, modelPrediction, r.tweetText)
 
     evaluation
   }
@@ -90,7 +124,7 @@ class ModelEvaluator(sc: SparkContext) {
     *
     * @param evaluation classified tweets
     */
-  private def performEvaluationAnalysis(evaluation: RDD[EvaluatedTrainingTweet]): Unit = {
+  private def performEvaluationAnalysis(evaluation: RDD[EvaluatedTrainingTweet], dataSetType: String = "Testing"): Unit = {
     val e = evaluation.aggregate(EvaluationFields(0, 0, 0, 0))(
       (e, t) => (t.actualLabel, t.modelPrediction) match {
         case (1, 1) => e.copy(happyCorrect = e.happyCorrect + 1, happyTotal = e.happyTotal + 1)
@@ -101,13 +135,14 @@ class ModelEvaluator(sc: SparkContext) {
       (e1, e2) => e1 + e2
     )
 
-    println("sad messages= " + e.sadTotal + " happy messages: " + e.happyTotal)
-    println("happy % correct: " + e.happyCorrect.toDouble / e.happyTotal)
-    println("sad % correct: " + e.sadCorrect.toDouble / e.sadTotal)
+    println(s"=============== $dataSetType Evaluation ==================")
+    println(s"sad messages=${e.sadTotal}, happy messages=${e.happyTotal}")
+    println(s"happy % correct=${e.happyCorrect.toDouble / e.happyTotal}")
+    println(s"sad % correct=${e.sadCorrect.toDouble / e.sadTotal}")
 
     val recordCount = evaluation.count()
     val testErr = evaluation.filter(t => t.actualLabel != t.modelPrediction).count.toDouble / recordCount
-    println("data size=" + recordCount)
-    println("Test Error " + testErr)
+    println(s"data size=$recordCount")
+    println(s"Test Error=$testErr")
   }
 }

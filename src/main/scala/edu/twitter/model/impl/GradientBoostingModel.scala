@@ -1,6 +1,6 @@
-package edu.twitter.model
+package edu.twitter.model.impl
 
-import edu.twitter.model_api.GenericModel
+import edu.twitter.model.api.GenericModel
 import org.apache.spark.mllib.feature.HashingTF
 import org.apache.spark.mllib.tree.model.GradientBoostedTreesModel
 

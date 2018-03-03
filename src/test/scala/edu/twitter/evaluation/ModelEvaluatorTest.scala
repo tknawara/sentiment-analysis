@@ -1,6 +1,7 @@
 package edu.twitter.evaluation
 
-import edu.twitter.model.GradientBoostingBuilder
+import edu.twitter.model.evaluation.ModelEvaluator
+import edu.twitter.model.impl.GradientBoostingBuilder
 import org.apache.spark.{SparkConf, SparkContext}
 
 object ModelEvaluatorTest {
