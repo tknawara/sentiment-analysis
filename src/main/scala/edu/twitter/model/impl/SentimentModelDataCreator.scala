@@ -19,7 +19,6 @@ class SentimentModelDataCreator(tweetsRDD: RDD[Row]) {
     * @return training data set, testing data set
     */
   def getTrainingAndTestingData(): (RDD[(String, LabeledPoint)], RDD[(String, LabeledPoint)]) = {
-    //We use scala's Try to filter out tweets that couldn't be parsed
     val labeledTweets = getLabeledRecords()
     val transformedTweets = transformData(labeledTweets)
 

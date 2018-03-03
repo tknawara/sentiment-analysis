@@ -50,12 +50,17 @@ class ModelEvaluator(sc: SparkContext) {
     * Given a model will evaluate it based on
     * training data and log evaluation analysis.
     *
-    * @param model target model for evaluation.
+    * @param path    path of the testing data.
+    * @param model   target model for evaluation.
+    * @param persist if true results will be saved to `Elasticsearch`
     */
-  def evaluate(model: GenericModel): Unit = {
+  def showPerformance(model: GenericModel, path: String, persist: Boolean = false): Unit = {
     val tweetsLoader = new TweetsLoader(sc)
-    val evaluation = evaluateData(model, tweetsLoader.getTweetsDataSet())
+    val evaluation = evaluateData(model, tweetsLoader.loadDataSet(path))
     performEvaluationAnalysis(evaluation)
+    if (persist) {
+      EsSpark.saveToEs(evaluation, s"${model.name}/performance-analysis")
+    }
   }
 
   /**
@@ -65,26 +70,19 @@ class ModelEvaluator(sc: SparkContext) {
     * @param model             target model for evaluation
     * @param trainingRecords   model's training data
     * @param validationRecords model's validation data
+    * @param persist           if true results will be saved to `Elasticsearch`
     */
-  def evaluate(model: GenericModel, trainingRecords: RDD[Record], validationRecords: RDD[Record]): Unit = {
+  def evaluate(model: GenericModel,
+               trainingRecords: RDD[Record],
+               validationRecords: RDD[Record], persist: Boolean = false): Unit = {
     val trainingEvaluation = evaluateRecords(model, trainingRecords)
     val validationEvaluation = evaluateRecords(model, validationRecords)
     performEvaluationAnalysis(trainingEvaluation, "Training")
     performEvaluationAnalysis(validationEvaluation)
-  }
-
-  /**
-    * Given a model will evaluate it based on
-    * training data, log evaluation analysis and
-    * persist the labeled records in `Elasticsearch`
-    *
-    * @param model target model for evaluation
-    */
-  def evaluateAndPersist(model: GenericModel): Unit = {
-    val tweetsLoader = new TweetsLoader(sc)
-    val evaluation = evaluateData(model, tweetsLoader.getTweetsDataSet())
-    performEvaluationAnalysis(evaluation)
-    EsSpark.saveToEs(evaluation, "training-analysis")
+    if (persist) {
+      EsSpark.saveToEs(trainingEvaluation, s"${model.name}/training-error")
+      EsSpark.saveToEs(validationEvaluation, s"${model.name}/testing-error")
+    }
   }
 
   /**

@@ -12,6 +12,7 @@ import org.apache.spark.mllib.tree.model.GradientBoostedTreesModel
 @SerialVersionUID(1L)
 class GradientBoostingModel(model: GradientBoostedTreesModel) extends GenericModel with Serializable {
 
+  val name = "GradientBoosting"
   val hashingTF = new HashingTF(2000)
   val invalidTokens = Set("http", "@", "rt", "#", "RT")
 

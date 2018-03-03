@@ -5,6 +5,8 @@ package edu.twitter.model.api
   */
 trait GenericModel {
 
+  def name: String
+
   /**
     * Classify the given tweet.
     *

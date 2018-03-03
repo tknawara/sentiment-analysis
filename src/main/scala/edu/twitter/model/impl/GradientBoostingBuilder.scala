@@ -27,10 +27,11 @@ class GradientBoostingBuilder(sc: SparkContext) extends GenericModelBuilder {
     */
   def build(): GenericModel = {
     implicit def toRecords(data: RDD[(String, LabeledPoint)]): RDD[Record] = data.map { case (msg, p) => Record(msg, p.label) }
-    implicit def toLabeledPoint(data: RDD[(String, LabeledPoint)]): RDD[LabeledPoint] = data.map(_._2)
+    implicit def toLabeledPoints(data: RDD[(String, LabeledPoint)]): RDD[LabeledPoint] = data.map(_._2)
 
     val tweetsLoader = new TweetsLoader(sc)
-    val twitterData = new SentimentModelDataCreator(tweetsLoader.getTweetsDataSet())
+    val dataPath = this.getClass.getClassLoader.getResource("labeled-tweets").getPath
+    val twitterData = new SentimentModelDataCreator(tweetsLoader.loadDataSet(dataPath))
     val (trainingSet, testSet) = twitterData.getTrainingAndTestingData()
 
     val boostingStrategy = BoostingStrategy.defaultParams("Classification")
