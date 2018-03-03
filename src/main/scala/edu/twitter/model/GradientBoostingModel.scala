@@ -17,7 +17,7 @@ class GradientBoostingModel(model: GradientBoostedTreesModel) extends GenericMod
 
   override def getLabel(tweetText: String): Double = {
     val tokens = tweetText.split(" ").filter(!invalidTokens(_))
-    val features = hashingTF.transform(tweetText.split(" "))
+    val features = hashingTF.transform(tokens)
     model.predict(features)
   }
 }
