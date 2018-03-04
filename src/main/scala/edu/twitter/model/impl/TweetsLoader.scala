@@ -1,5 +1,6 @@
-package edu.twitter.model
+package edu.twitter.model.impl
 
+import edu.twitter.model.JsonParser
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Row}
@@ -13,11 +14,11 @@ class TweetsLoader(sc: SparkContext) {
   /**
     * Get Tweets data set as RDD.
     *
+    * @param path path of the stored data to be loaded.
     * @return RDD contains stream of tweets
     */
-  def getTweetsDataSet(): RDD[Row] = {
-    val dataPath = this.getClass.getClassLoader.getResource("labeled-tweets").getPath
-    val tweetDF = tweetsJsonParser.parse(dataPath)
+  def loadDataSet(path: String): RDD[Row] = {
+    val tweetDF = tweetsJsonParser.parse(path)
     equalizeDataSet(tweetDF)
   }
 

@@ -3,7 +3,7 @@ package edu.twitter.classification
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import edu.twitter.model_api.GenericModelBuilder
+import edu.twitter.model.api.GenericModelBuilder
 import edu.twitter.streaming.TwitterStream
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream

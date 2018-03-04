@@ -1,6 +1,6 @@
-package edu.twitter.model
+package edu.twitter.model.impl
 
-import edu.twitter.model_api.GenericModel
+import edu.twitter.model.api.GenericModel
 import org.apache.spark.mllib.feature.HashingTF
 import org.apache.spark.mllib.tree.model.GradientBoostedTreesModel
 
@@ -12,6 +12,7 @@ import org.apache.spark.mllib.tree.model.GradientBoostedTreesModel
 @SerialVersionUID(1L)
 class GradientBoostingModel(model: GradientBoostedTreesModel) extends GenericModel with Serializable {
 
+  val name = "GradientBoosting"
   val hashingTF = new HashingTF(2000)
   val invalidTokens = Set("http", "@", "rt", "#", "RT")
 

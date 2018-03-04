@@ -1,9 +1,11 @@
-package edu.twitter.model_api
+package edu.twitter.model.api
 
 /**
   * A generic interface for sentiment analysis model.
   */
 trait GenericModel {
+
+  def name: String
 
   /**
     * Classify the given tweet.
