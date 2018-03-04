@@ -5,3 +5,4 @@ build
 twitter4j.properties
 *.iml
 *.gz
+NewsModel.txt

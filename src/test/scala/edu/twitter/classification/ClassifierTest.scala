@@ -2,8 +2,8 @@ package edu.twitter.classification
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import edu.twitter.model.impl.GradientBoostingBuilder
 import edu.twitter.model.service.ModelService
+import edu.twitter.model.impl.gradientboosting.GradientBoostingBuilder
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext}
 
