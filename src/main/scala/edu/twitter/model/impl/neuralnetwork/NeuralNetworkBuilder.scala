@@ -15,10 +15,17 @@ import org.deeplearning4j.util.ModelSerializer
 import org.nd4j.linalg.activations.Activation
 import org.nd4j.linalg.lossfunctions.LossFunctions
 
-@SerialVersionUID(100L)
-class NeuralNetworkBuilder(sc: SparkContext) extends Serializable with GenericModelBuilder {
+class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
 
-  val modelPath =  this.getClass().getClassLoader().getResource("saved-models").getPath() + File.separator + "NeuralNetworkModel.net"
+  val modelPath = this.getClass().getClassLoader().getResource("saved-models").getPath() + File.separator + "NeuralNetworkModel.net"
+
+  /** Location (local file system) for the Google News vectors. */
+  //val WORD_VECTORS_PATH: String = this.getClass.getClassLoader.getResource("NewsModel.txt").getPath
+  val WORD_VECTORS_PATH: String = this.getClass.getClassLoader.getResource("GoogleNews-vectors-negative300.bin.gz").getPath
+
+  //val wordVectors = WordVectorSerializer.loadTxtVectors(new File(WORD_VECTORS_PATH))
+  val wordVectors = WordVectorSerializer.readWord2VecModel(new File(WORD_VECTORS_PATH))
+  val vectorSize: Int = wordVectors.getWordVector(wordVectors.vocab.wordAtIndex(0)).length // 100 in our case
 
   /**
     * Run the recipe responsible for constructing the model.
@@ -26,15 +33,8 @@ class NeuralNetworkBuilder(sc: SparkContext) extends Serializable with GenericMo
     * @return an instance of generic model.
     */
   override def build(): GenericModel = {
-    /** Location (local file system) for the Google News vectors. */
-    //val WORD_VECTORS_PATH: String = this.getClass.getClassLoader.getResource("NewsModel.txt").getPath
-    val WORD_VECTORS_PATH: String = this.getClass.getClassLoader.getResource("GoogleNews-vectors-negative300.bin.gz").getPath
 
-    //val wordVectors = WordVectorSerializer.loadTxtVectors(new File(WORD_VECTORS_PATH))
-    val wordVectors = WordVectorSerializer.loadStaticModel(new File(WORD_VECTORS_PATH))
-    val vectorSize: Int = wordVectors.getWordVector(wordVectors.vocab.wordAtIndex(0)).length // 100 in our case
-
-    if(checkModelExist()){
+    if (checkModelExist()) {
       val model = ModelSerializer.restoreMultiLayerNetwork(modelPath)
       return new NeuralNetworkModel(model, wordVectors)
     }

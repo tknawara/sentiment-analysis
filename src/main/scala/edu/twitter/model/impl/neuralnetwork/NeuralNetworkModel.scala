@@ -11,8 +11,9 @@ import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.indexing.{INDArrayIndex, NDArrayIndex}
 
+@SerialVersionUID(2L)
 class NeuralNetworkModel(model: MultiLayerNetwork,
-                         wordVectors: WordVectors) extends GenericModel {
+                         wordVectors: WordVectors) extends GenericModel with Serializable {
 
   val name = "NeuralNetwork"
   val vectorSize = wordVectors.getWordVector(wordVectors.vocab.wordAtIndex(0)).length
