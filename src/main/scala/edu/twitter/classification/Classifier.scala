@@ -3,14 +3,10 @@ package edu.twitter.classification
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
 import edu.twitter.model.client.ModelClient
 import edu.twitter.streaming.TwitterStream
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
-
-import scala.concurrent.ExecutionContext
 
 /** Representation of the classified tweet, we may add
   * more fields to it later. */

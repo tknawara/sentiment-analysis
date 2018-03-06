@@ -1,6 +1,5 @@
 package edu.twitter.model.service
 
-import java.net.URLDecoder
 import java.nio.charset.Charset
 import java.util.Base64
 
@@ -40,7 +39,7 @@ class ModelService(genericModelBuilder: GenericModelBuilder)
       path("classify") {
         get {
           parameters('tweet.as[String]) { tweet =>
-            val decodedTweet = new String(Base64.getDecoder.decode(tweet), Charset.forName("UTF-16"))
+            val decodedTweet = new String(Base64.getUrlDecoder.decode(tweet), Charset.forName("UTF-16"))
             complete(TweetLabel(model.getLabel(decodedTweet)))
           }
         }

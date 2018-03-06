@@ -36,12 +36,8 @@ public final class ModelClient {
      * @return optional of `ModelServiceResponse`
      */
     public static Optional<ModelServiceResponse> callModel(final String tweet) {
-        try {
-            final String encodedTweet = new String(Base64.getEncoder().encode(tweet.getBytes(StandardCharsets.UTF_16)));
-            return executeRequest(API_URL + encodedTweet, ModelServiceResponse.class);
-        } catch (Exception e) {
-            return Optional.empty();
-        }
+        final String encodedTweet = new String(Base64.getUrlEncoder().encode(tweet.getBytes(StandardCharsets.UTF_16)));
+        return executeRequest(API_URL + encodedTweet, ModelServiceResponse.class);
     }
 
     /**
