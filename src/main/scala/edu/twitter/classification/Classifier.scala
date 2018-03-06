@@ -3,10 +3,15 @@ package edu.twitter.classification
 import java.text.SimpleDateFormat
 import java.util.Date
 
+import akka.actor.ActorSystem
+import akka.stream.Materializer
+import edu.twitter.model.ModelClient
 import edu.twitter.model.api.GenericModelBuilder
 import edu.twitter.streaming.TwitterStream
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
+
+import scala.concurrent.ExecutionContext
 
 /** Representation of the classified tweet, we may add
   * more fields to it later. */
@@ -18,7 +23,10 @@ case class ClassifiedTweet(label: Double, tweetText: String, date: String)
   * @param ssc StreamingContext, used for model and
   *            stream creation
   */
-class Classifier(ssc: StreamingContext) {
+class Classifier(ssc: StreamingContext)
+                (implicit val executionContext: ExecutionContext,
+                 implicit val system: ActorSystem,
+                 implicit val materializer: Materializer) {
 
   /**
     * Build the `Classification Model` and a `TweeterStream`
@@ -33,15 +41,15 @@ class Classifier(ssc: StreamingContext) {
     // should add more validation criteria in the future see issue #13
 
     val tweets = new TwitterStream(ssc).createStream()
-    val model = genericModelBuilder.build()
     val supportedLangIso = Set("en", "eng")
     val dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
     val classifiedStream = for {
       tweet <- tweets
       if supportedLangIso(tweet.getLang)
       date = dateFormat.format(new Date())
-      label = model.getLabel(tweet.getText)
-    } yield ClassifiedTweet(label, tweet.getText, date)
+      resp = ModelClient.getLabel(tweet.getText)
+      if resp.isPresent
+    } yield ClassifiedTweet(resp.get().getLabel, tweet.getText, date)
 
     classifiedStream
   }
