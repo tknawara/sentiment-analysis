@@ -19,11 +19,11 @@ object ClassifierTest {
     val sc = new SparkContext(conf)
     val ssc = new StreamingContext(sc, Seconds(10))
 
-    val modelService = new ModelService()
-    modelService.exposeModel()
+    val modelService = new ModelService(new GradientBoostingBuilder(sc))
+    modelService.start()
 
     val classifier = new Classifier(ssc)
-    val classifiedStream = classifier.createClassifiedStream(new GradientBoostingBuilder(sc))
+    val classifiedStream = classifier.createClassifiedStream()
     classifiedStream.foreachRDD(rdd => rdd.take(10).foreach(println(_)))
 
     ssc.start()

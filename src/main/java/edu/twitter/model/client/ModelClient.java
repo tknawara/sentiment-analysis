@@ -1,4 +1,4 @@
-package edu.twitter.model;
+package edu.twitter.model.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
@@ -8,24 +8,42 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
-import java.io.IOException;
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Optional;
 
-public class ModelClient {
-
-    private static final CloseableHttpClient HTTP_CLIENT =
-            HttpClients.createDefault();
+/**
+ * Class Responsible for communicating
+ * with the model service.
+ */
+public final class ModelClient {
+    private static final CloseableHttpClient HTTP_CLIENT = HttpClients.createDefault();
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final String API_URL = "http://localhost:8080/classify?tweet=";
 
-    public static Optional<ModelServiceResponse> getLabel(String twitterLabel) {
+    /**
+     * Constructor.
+     */
+    private ModelClient() {
+    }
+
+    /**
+     * Perform a Get request to the model's service
+     * to get the label of the tweet.
+     *
+     * @param tweet tweet's text
+     * @return optional of `ModelServiceResponse`
+     */
+    public static Optional<ModelServiceResponse> callModel(final String tweet) {
         try {
-            return executeRequest("http://localhost:8080/classify?tweet=" + URLEncoder.encode(twitterLabel, "utf-8"), ModelServiceResponse.class);
+            final String encodedTweet = new String(Base64.getEncoder().encode(tweet.getBytes(StandardCharsets.UTF_16)));
+            return executeRequest(API_URL + encodedTweet, ModelServiceResponse.class);
         } catch (Exception e) {
             return Optional.empty();
         }
     }
+
     /**
      * Execute the API request, then marshall the API response
      * to the given class type.
@@ -40,10 +58,10 @@ public class ModelClient {
             final HttpGet httpGet = new HttpGet(url);
             final CloseableHttpResponse response = HTTP_CLIENT.execute(httpGet);
             final HttpEntity entity = response.getEntity();
-            final T answersContainer =
+            final T modelServiceResponse =
                     MAPPER.readValue(IOUtils.toString(entity.getContent(), Charset.defaultCharset()), valueType);
-            return Optional.of(answersContainer);
-        } catch (final IOException e) {
+            return Optional.of(modelServiceResponse);
+        } catch (final Exception e) {
             System.out.println("API call failed with exception=" + e.getMessage());
             return Optional.empty();
         }

@@ -1,4 +1,4 @@
-package edu.twitter.model
+package edu.twitter.model.impl
 
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.DataFrame

@@ -2,6 +2,7 @@ package edu.twitter.model
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import edu.twitter.model.client.ModelClient
 import edu.twitter.model.service.ModelService
 import org.apache.spark.{SparkConf, SparkContext}
 
@@ -15,9 +16,5 @@ object ModelClientServiceTest {
 
     val conf = new SparkConf().setMaster("local[*]").setAppName("Twitter")
     val sc = new SparkContext(conf)
-
-    val modelService = new ModelService()
-    modelService.exposeModel()
-    val modelClient = new ModelClient()
   }
 }
