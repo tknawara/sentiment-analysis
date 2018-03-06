@@ -35,7 +35,7 @@ public final class ModelClient {
      * @param tweet tweet's text
      * @return optional of `ModelServiceResponse`
      */
-    public static Optional<ModelServiceResponse> callModel(final String tweet) {
+    public static Optional<ModelServiceResponse> callModelService(final String tweet) {
         final String encodedTweet = new String(Base64.getUrlEncoder().encode(tweet.getBytes(StandardCharsets.UTF_16)));
         return executeRequest(API_URL + encodedTweet, ModelServiceResponse.class);
     }

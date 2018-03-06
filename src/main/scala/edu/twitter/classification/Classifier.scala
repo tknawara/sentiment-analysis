@@ -34,7 +34,7 @@ class Classifier(ssc: StreamingContext) {
       tweet <- tweets
       if supportedLangIso(tweet.getLang)
       date = dateFormat.format(new Date())
-      resOption = ModelClient.callModel(tweet.getText)
+      resOption = ModelClient.callModelService(tweet.getText)
       if resOption.isPresent
       res = resOption.get
     } yield ClassifiedTweet(res.getLabel, tweet.getText, date)
