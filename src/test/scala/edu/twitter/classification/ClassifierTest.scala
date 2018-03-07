@@ -3,7 +3,7 @@ package edu.twitter.classification
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import edu.twitter.model.service.ModelService
-import edu.twitter.model.impl.gradientboosting.GradientBoostingBuilder
+import edu.twitter.model.impl.neuralnetwork.NeuralNetworkBuilder
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext}
 
@@ -19,7 +19,7 @@ object ClassifierTest {
     val sc = new SparkContext(conf)
     val ssc = new StreamingContext(sc, Seconds(10))
 
-    val modelService = new ModelService(new GradientBoostingBuilder(sc))
+    val modelService = new ModelService(new NeuralNetworkBuilder(sc))
     modelService.start()
 
     val classifier = new Classifier(ssc)

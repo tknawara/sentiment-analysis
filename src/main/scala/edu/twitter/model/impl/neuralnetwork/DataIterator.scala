@@ -19,6 +19,9 @@ import scala.collection.JavaConverters._
 
 
 /**
+  * An Iterator used to convert the training (or the testing) data to the format
+  * that the neural network model understands.
+  *
   * @param data           The labeled tweets
   * @param wordVectors    WordVectors object
   * @param batchSize      Size of each minibatch for training
