@@ -18,7 +18,7 @@ class SentimentModelDataCreator(tweetsRDD: RDD[Row]) {
     *
     * @return training data set, testing data set
     */
-  def getTrainingAndTestingData(): (RDD[(String, LabeledPoint)], RDD[(String, LabeledPoint)]) = {
+  def getTrainingAndTestingData(): (RDD[LabeledPoint], RDD[LabeledPoint]) = {
     val labeledTweets = getLabeledRecords()
     val transformedTweets = transformData(labeledTweets)
 
@@ -45,13 +45,13 @@ class SentimentModelDataCreator(tweetsRDD: RDD[Row]) {
     * @param labeledTweets
     * @return RDD of label (0 , 1) and sparse vector (ex: (1.0,(2000,[105,1139,1707,1872,1964],[1.0,1.0,1.0,1.0,1.0])))
     */
-  def transformData(labeledTweets: RDD[(Double, String)]): RDD[(String, LabeledPoint)] = {
+  def transformData(labeledTweets: RDD[(Double, String)]): RDD[LabeledPoint] = {
     val hashingTF = new HashingTF(2000)
 
     val inputLabeled = labeledTweets.map {
       case (label, msg) =>
         val features = hashingTF.transform(msg.split(" "))
-        (msg, new LabeledPoint(label, features))
+        new LabeledPoint(label, features)
     }
     inputLabeled
   }

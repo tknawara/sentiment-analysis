@@ -1,6 +1,6 @@
 package edu.twitter.model.evaluation
 
-import edu.twitter.model.api.GenericModel
+import edu.twitter.model.client.ModelClient
 import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -22,23 +22,20 @@ case class EvaluationFields(happyCorrect: Int, happyTotal: Int, sadCorrect: Int,
     * @return a new instance resulting of the combination of
     *         both instances.
     */
-  def +(o: EvaluationFields): EvaluationFields = o match {
-    case EvaluationFields(oHappyCorrect, oHappyTotal, oSadCorrect, oSadTotal) =>
-      EvaluationFields(
-        happyCorrect + oHappyCorrect,
-        happyTotal + oHappyTotal,
-        sadCorrect + oSadCorrect,
-        sadTotal + oSadTotal
-      )
-  }
+  def +(o: EvaluationFields): EvaluationFields =
+    EvaluationFields(
+      happyCorrect + o.happyCorrect,
+      happyTotal + o.happyTotal,
+      sadCorrect + o.sadCorrect,
+      sadTotal + o.sadTotal
+    )
 }
 
 /** Representation of a training tweet that has been classified
   * by the model, it holds both the actual and model labels. */
 case class EvaluatedTrainingTweet(actualLabel: Double, modelPrediction: Double, tweetText: String)
 
-/**
-  * Responsible for evaluating a model based on a given
+/** Responsible for evaluating a model based on a given
   * testing data. this class will print training analysis
   * in the console and persist the labeled data in `Elasticsearch`
   * for further visualization.
@@ -47,71 +44,50 @@ case class EvaluatedTrainingTweet(actualLabel: Double, modelPrediction: Double, 
   */
 class ModelEvaluator(sc: SparkContext) {
   /**
-    * Given a model will evaluate it based on
-    * training data and log evaluation analysis.
+    * Show how the model will perform against a
+    * prelabeled data.
     *
-    * @param path    path of the testing data.
-    * @param model   target model for evaluation.
-    * @param persist if true results will be saved to `Elasticsearch`
+    * @param modelName name of the target model for evaluation.
+    * @param path      path of the testing data.
+    * @param persist   if true results will be saved to `Elasticsearch`
     */
-  def showPerformance(model: GenericModel, path: String, persist: Boolean = false): Unit = {
+  def evaluate(modelName: String, path: String, persist: Boolean = false): Unit = {
     val tweetsLoader = new TweetsLoader(sc)
-    val evaluation = evaluateData(model, tweetsLoader.loadDataSet(path))
+    val evaluation = evaluateData(tweetsLoader.loadDataSet(path))
     performEvaluationAnalysis(evaluation)
     if (persist) {
-      EsSpark.saveToEs(evaluation, s"${model.name}/performance-analysis")
-    }
-  }
-
-  /**
-    * Given a model and its training, testing data. this method
-    * will measure how will the model will perform.
-    *
-    * @param model             target model for evaluation
-    * @param trainingRecords   model's training data
-    * @param validationRecords model's validation data
-    * @param persist           if true results will be saved to `Elasticsearch`
-    */
-  def evaluate(model: GenericModel,
-               trainingRecords: RDD[Record],
-               validationRecords: RDD[Record], persist: Boolean = false): Unit = {
-    val trainingEvaluation = evaluateRecords(model, trainingRecords)
-    val validationEvaluation = evaluateRecords(model, validationRecords)
-    performEvaluationAnalysis(trainingEvaluation, "Training")
-    performEvaluationAnalysis(validationEvaluation)
-    if (persist) {
-      EsSpark.saveToEs(trainingEvaluation, s"${model.name}/training-error")
-      EsSpark.saveToEs(validationEvaluation, s"${model.name}/testing-error")
+      EsSpark.saveToEs(evaluation, s"$modelName/performance-analysis")
     }
   }
 
   /**
     * Show how the model will perform against the given data.
     *
-    * @param model target model for evaluation
-    * @param data  evaluation data
+    * @param data evaluation data
     * @return rdd of `EvaluatedTrainingTweet`
     */
-  private def evaluateData(model: GenericModel, data: RDD[Row]): RDD[EvaluatedTrainingTweet] = {
+  private def evaluateData(data: RDD[Row]): RDD[EvaluatedTrainingTweet] = {
     val transformedData = for {
       row <- data
       actualLabel = row.getAs[Double]("label")
       tweetText = row.getAs[String]("msg")
     } yield Record(tweetText, actualLabel)
 
-    evaluateRecords(model, transformedData)
+    evaluateRecords(transformedData)
   }
 
   /**
     * Evaluate all the testing data.
     *
-    * @param model target model for evaluation
     * @return rdd of `EvaluatedTrainingTweet` instances.
     */
-  private def evaluateRecords(model: GenericModel, data: RDD[Record]): RDD[EvaluatedTrainingTweet] = {
+  private def evaluateRecords(data: RDD[Record]): RDD[EvaluatedTrainingTweet] = {
     val evaluation = for {
       r <- data
-      modelPrediction = model.getLabel(r.tweetText)
+      resOption = ModelClient.callModelService(r.tweetText)
+      if resOption.isPresent
+      res = resOption.get()
+      modelPrediction = res.getLabel
     } yield EvaluatedTrainingTweet(r.actualLabel, modelPrediction, r.tweetText)
 
     evaluation

@@ -11,7 +11,5 @@ object ModelEvaluatorTest {
     val dataPath = this.getClass.getClassLoader.getResource("labeled-tweets").getPath
 
     val model = new GradientBoostingBuilder(sc).build()
-    val modelEvaluator = new ModelEvaluator(sc)
-    modelEvaluator.showPerformance(model, dataPath)
   }
 }
