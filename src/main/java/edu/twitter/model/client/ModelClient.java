@@ -8,6 +8,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -57,8 +58,8 @@ public final class ModelClient {
             final T modelServiceResponse =
                     MAPPER.readValue(IOUtils.toString(entity.getContent(), Charset.defaultCharset()), valueType);
             return Optional.of(modelServiceResponse);
-        } catch (final Exception e) {
-            System.out.println("API call failed with exception=" + e.getMessage());
+        } catch (final IOException e) {
+            e.printStackTrace();
             return Optional.empty();
         }
     }
