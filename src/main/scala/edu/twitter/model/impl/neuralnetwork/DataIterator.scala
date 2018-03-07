@@ -89,7 +89,7 @@ class DataIterator(val data: RDD[Row],
       maxLength = Math.max(maxLength, tokensFiltered.size)
     }
 
-    // Workaround, just in case the word2vec doesn't recognise all the words in the batch.
+    // Workaround, just in case the word2vec doesn't recognise all the words in the batch which is unlikely to happen as we are using Google word2vec.
     if (maxLength == 0) {
       println(reviews.get(0))
       allTokens.get(0).add("times")
@@ -103,9 +103,7 @@ class DataIterator(val data: RDD[Row],
     //Here: we have reviews.size() examples of varying lengths
     val features = Nd4j.create(reviews.size, vectorSize, maxLength)
     val labels = Nd4j.create(reviews.size, 2, maxLength)
-    //Two labels: positive or negative
-    //Because we are dealing with reviews of different lengths and only one output at the final time step: use padding arrays
-    //Mask arrays contain 1 if data is present at that time step for that example, or 0 if data is just padding
+    //Two labels: positive or negative because we are dealing with reviews of different lengths and only one output at the final time step: use padding arrays mask arrays contain 1 if data is present at that time step for that example, or 0 if data is just padding
     val featuresMask = Nd4j.zeros(reviews.size, maxLength)
     val labelsMask = Nd4j.zeros(reviews.size, maxLength)
 

@@ -3,9 +3,9 @@ package edu.twitter.model.impl.gradientboosting
 import java.io.File
 
 import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
-import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
+import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.tree.GradientBoostedTrees
 import org.apache.spark.mllib.tree.configuration.BoostingStrategy
@@ -79,7 +79,7 @@ class GradientBoostingBuilder(sc: SparkContext) extends GenericModelBuilder {
       println(s"FPR($l) = ${metrics.falsePositiveRate(l)}")
       println(s"F1-Score($l) = ${metrics.fMeasure(l)}")
     }
- }
+  }
 
   private def checkModelExist(): Boolean = {
     val file = new File(modelPath)

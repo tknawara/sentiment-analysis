@@ -77,25 +77,38 @@ class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
     for (i <- 0 until nEpochs) {
       net.fit(train)
       train.reset()
-
-      val evaluation = new Evaluation(2)
-      while (test.hasNext) {
-        val t = test.next
-        val features = t.getFeatureMatrix
-        val labels = t.getLabels
-        val inMask = t.getFeaturesMaskArray
-        val outMask = t.getLabelsMaskArray
-        val predicted = net.output(features, false, inMask, outMask)
-        evaluation.evalTimeSeries(labels, predicted, outMask)
-      }
-      test.reset()
-
-      println("Iteration" + i + ":")
-      println(evaluation.stats)
+      evaluate(net, train, "Training", i+1)
+      evaluate(net, test, "Testing", i+1)
     }
 
     ModelSerializer.writeModel(net, modelPath, true)
     new NeuralNetworkModel(net, wordVectors)
+  }
+
+  /**
+    * Evaluate the `Neural Network Model`.
+    *
+    * @param model        target model for evaluation
+    * @param dataIterator data used in evaluation
+    * @param setType      type of the data used for evaluation
+    * @param EpochNumber  the number of the Epoch
+    */
+  private def evaluate(model: MultiLayerNetwork, dataIterator: DataIterator, setType: String, EpochNumber: Int): Unit = {
+    val evaluation = new Evaluation(2)
+    while (dataIterator.hasNext) {
+      val t = dataIterator.next
+      val features = t.getFeatureMatrix
+      val labels = t.getLabels
+      val inMask = t.getFeaturesMaskArray
+      val outMask = t.getLabelsMaskArray
+      val predicted = model.output(features, false, inMask, outMask)
+      evaluation.evalTimeSeries(labels, predicted, outMask)
+    }
+    dataIterator.reset()
+
+    println(s"================ $setType ==================")
+    println("Epoch Number " + EpochNumber + ":")
+    println(evaluation.stats)
   }
 
   private def checkModelExist(): Boolean = {
