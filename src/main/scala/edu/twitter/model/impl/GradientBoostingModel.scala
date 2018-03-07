@@ -9,8 +9,7 @@ import org.apache.spark.mllib.tree.model.GradientBoostedTreesModel
   *
   * @param model actual model
   */
-@SerialVersionUID(1L)
-class GradientBoostingModel(model: GradientBoostedTreesModel) extends GenericModel with Serializable {
+class GradientBoostingModel(model: GradientBoostedTreesModel) extends GenericModel {
 
   val name = "GradientBoosting"
   val hashingTF = new HashingTF(2000)

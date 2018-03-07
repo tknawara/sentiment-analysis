@@ -1,11 +1,12 @@
 package edu.twitter.model.impl
 
 import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
-import edu.twitter.model.evaluation.{ModelEvaluator, Record}
 import org.apache.spark.SparkContext
+import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.tree.GradientBoostedTrees
 import org.apache.spark.mllib.tree.configuration.BoostingStrategy
+import org.apache.spark.mllib.tree.model.GradientBoostedTreesModel
 import org.apache.spark.rdd.RDD
 
 /**
@@ -26,9 +27,6 @@ class GradientBoostingBuilder(sc: SparkContext) extends GenericModelBuilder {
     * @return GenericModel
     */
   def build(): GenericModel = {
-    implicit def toRecords(data: RDD[(String, LabeledPoint)]): RDD[Record] = data.map { case (msg, p) => Record(msg, p.label) }
-    implicit def toLabeledPoints(data: RDD[(String, LabeledPoint)]): RDD[LabeledPoint] = data.map(_._2)
-
     val tweetsLoader = new TweetsLoader(sc)
     val dataPath = this.getClass.getClassLoader.getResource("labeled-tweets").getPath
     val twitterData = new SentimentModelDataCreator(tweetsLoader.loadDataSet(dataPath))
@@ -40,9 +38,37 @@ class GradientBoostingBuilder(sc: SparkContext) extends GenericModelBuilder {
     boostingStrategy.treeStrategy.setMaxDepth(5)
 
     val model = GradientBoostedTrees.train(trainingSet, boostingStrategy)
-    val genericModel = new GradientBoostingModel(model)
-    val modelEvaluator = new ModelEvaluator(sc)
-    modelEvaluator.evaluate(genericModel, trainingSet, testSet)
-    genericModel
+    evaluate(model, trainingSet, "Training")
+    evaluate(model, testSet, "Testing")
+    new GradientBoostingModel(model)
+  }
+
+  /**
+    * Evaluate the `GradientBoostingModel`.
+    *
+    * @param model   target model for evaluation
+    * @param data    data used in evaluation
+    * @param setType type of the data used for evaluation
+    */
+  private def evaluate(model: GradientBoostedTreesModel, data: RDD[LabeledPoint], setType: String): Unit = {
+    val predictionAndLabels = data.map { case LabeledPoint(label, features) =>
+      val prediction = model.predict(features)
+      (prediction, label)
+    }
+
+    println(s"================ $setType ==================")
+    val metrics = new MulticlassMetrics(predictionAndLabels)
+
+    val accuracy = metrics.accuracy
+    println("Summary Statistics")
+    println(s"Accuracy = $accuracy")
+
+    metrics.labels.foreach { l =>
+      println(s"Precision($l) = ${metrics.precision(l)}")
+      println(s"Recall($l) = ${metrics.recall(l)}")
+      println(s"FPR($l) = ${metrics.falsePositiveRate(l)}")
+      println(s"F1-Score($l) = ${metrics.fMeasure(l)}")
+    }
+
   }
 }
