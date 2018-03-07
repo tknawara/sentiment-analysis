@@ -3,7 +3,7 @@ package edu.twitter.classification
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import edu.twitter.model.api.GenericModelBuilder
+import edu.twitter.model.client.ModelClient
 import edu.twitter.streaming.TwitterStream
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
@@ -24,24 +24,20 @@ class Classifier(ssc: StreamingContext) {
     * Build the `Classification Model` and a `TweeterStream`
     * and return a stream of `ClassifiedTweets`.
     *
-    * @param genericModelBuilder the instance holding the recipe for
-    *                            building the model.
     * @return stream of `ClassifiedTweets`
     */
-  def createClassifiedStream(genericModelBuilder: GenericModelBuilder): DStream[ClassifiedTweet] = {
-    // Only checking for url patterns, mentions, hashtags and retweets
-    // should add more validation criteria in the future see issue #13
-
+  def createClassifiedStream(): DStream[ClassifiedTweet] = {
     val tweets = new TwitterStream(ssc).createStream()
-    val model = genericModelBuilder.build()
     val supportedLangIso = Set("en", "eng")
     val dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
     val classifiedStream = for {
       tweet <- tweets
       if supportedLangIso(tweet.getLang)
       date = dateFormat.format(new Date())
-      label = model.getLabel(tweet.getText)
-    } yield ClassifiedTweet(label, tweet.getText, date)
+      resOption = ModelClient.callModelService(tweet.getText)
+      if resOption.isPresent
+      res = resOption.get
+    } yield ClassifiedTweet(res.getLabel, tweet.getText, date)
 
     classifiedStream
   }
