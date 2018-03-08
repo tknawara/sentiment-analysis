@@ -1,7 +1,5 @@
 package edu.twitter.model.impl.neuralnetwork
 
-import java.util
-
 import edu.twitter.model.api.GenericModel
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
@@ -52,10 +50,7 @@ class NeuralNetworkModel(model: MultiLayerNetwork,
 
     import scala.collection.JavaConversions._
     val tokens = tokenizerFactory.create(reviewContents).getTokens
-    val tokensFiltered = new util.ArrayList[String]
-    for (t <- tokens) {
-      if (wordVectors.hasWord(t)) tokensFiltered.add(t)
-    }
+    val tokensFiltered = tokens.filter(wordVectors.hasWord)
 
     val features = Nd4j.create(1, vectorSize, math.max(tokensFiltered.size, 1))
     for (j <- 0 until tokensFiltered.size) {

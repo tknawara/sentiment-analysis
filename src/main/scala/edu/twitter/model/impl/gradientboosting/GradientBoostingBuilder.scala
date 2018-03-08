@@ -17,7 +17,7 @@ import org.apache.spark.rdd.RDD
   */
 class GradientBoostingBuilder(sc: SparkContext) extends GenericModelBuilder {
 
-  val modelPath = this.getClass().getClassLoader().getResource("saved-models").getPath() + File.separator + "GradientBoosting"
+  private val modelPath = this.getClass().getClassLoader().getResource("saved-models").getPath() + File.separator + "GradientBoosting"
 
   /**
     * Create a GradientBoosting Classification model using a Gradient Boosting model.
@@ -83,6 +83,6 @@ class GradientBoostingBuilder(sc: SparkContext) extends GenericModelBuilder {
 
   private def checkModelExist(): Boolean = {
     val file = new File(modelPath)
-    return file.exists()
+    file.exists()
   }
 }

@@ -20,15 +20,15 @@ import org.nd4j.linalg.lossfunctions.LossFunctions
   */
 class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
 
-  val modelPath = this.getClass().getClassLoader().getResource("saved-models").getPath() + File.separator + "NeuralNetworkModel.net"
+  private val modelPath = this.getClass().getClassLoader().getResource("saved-models").getPath() + File.separator + "NeuralNetworkModel.net"
 
   /** Location (local file system) for the Google News vectors. */
   //val WORD_VECTORS_PATH: String = this.getClass.getClassLoader.getResource("NewsModel.txt").getPath
-  val WORD_VECTORS_PATH: String = this.getClass.getClassLoader.getResource("GoogleNews-vectors-negative300.bin.gz").getPath
+  private val WORD_VECTORS_PATH: String = this.getClass.getClassLoader.getResource("GoogleNews-vectors-negative300.bin.gz").getPath
 
   //val wordVectors = WordVectorSerializer.loadTxtVectors(new File(WORD_VECTORS_PATH))
-  val wordVectors = WordVectorSerializer.readWord2VecModel(new File(WORD_VECTORS_PATH))
-  val vectorSize: Int = wordVectors.getWordVector(wordVectors.vocab.wordAtIndex(0)).length // 100 in our case
+  private val wordVectors = WordVectorSerializer.readWord2VecModel(new File(WORD_VECTORS_PATH))
+  private val vectorSize: Int = wordVectors.getWordVector(wordVectors.vocab.wordAtIndex(0)).length // 100 in our case
 
   /**
     * Run the recipe responsible for constructing the model.
@@ -54,7 +54,28 @@ class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
     val test = new DataIterator(testData, wordVectors, batchSize, truncateReviewsToLength)
 
     //Set up network configuration
-    val conf: MultiLayerConfiguration = new NeuralNetConfiguration.Builder()
+    val conf = buildConfig()
+
+    val net = new MultiLayerNetwork(conf)
+    net.init()
+
+    println("Starting training")
+    for (i <- 0 until nEpochs) {
+      net.fit(train)
+      train.reset()
+      evaluate(net, train, "Training", i + 1)
+      evaluate(net, test, "Testing", i + 1)
+    }
+
+    ModelSerializer.writeModel(net, modelPath, true)
+    new NeuralNetworkModel(net, wordVectors)
+  }
+
+  /**
+    * Build the configuration used by the NN model
+    */
+  private def buildConfig(): MultiLayerConfiguration = {
+    new NeuralNetConfiguration.Builder()
       .updater(Updater.ADAM)
       .regularization(true)
       .l2(1e-5)
@@ -69,20 +90,6 @@ class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
       .layer(1, new RnnOutputLayer.Builder().activation(Activation.SOFTMAX)
         .lossFunction(LossFunctions.LossFunction.MCXENT).nIn(256).nOut(2).build)
       .pretrain(false).backprop(true).build()
-
-    val net = new MultiLayerNetwork(conf)
-    net.init()
-
-    println("Starting training")
-    for (i <- 0 until nEpochs) {
-      net.fit(train)
-      train.reset()
-      evaluate(net, train, "Training", i+1)
-      evaluate(net, test, "Testing", i+1)
-    }
-
-    ModelSerializer.writeModel(net, modelPath, true)
-    new NeuralNetworkModel(net, wordVectors)
   }
 
   /**

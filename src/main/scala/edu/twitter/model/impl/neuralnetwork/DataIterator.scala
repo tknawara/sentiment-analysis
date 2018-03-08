@@ -15,7 +15,8 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.indexing.{INDArrayIndex, NDArrayIndex}
 
-import scala.collection.JavaConverters._
+import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 
 /**
@@ -39,10 +40,10 @@ class DataIterator(val data: RDD[Row],
   final private val tokenizerFactory: TokenizerFactory = new DefaultTokenizerFactory
   tokenizerFactory.setTokenPreProcessor(new CommonPreprocessor)
 
-  private var _cursor: Int = 0
+  private var dataCursor: Int = 0
 
   def next(num: Int): DataSet = {
-    if (_cursor >= dataList.length)
+    if (dataCursor >= dataList.length)
       throw new NoSuchElementException
     try {
       nextDataSet(num)
@@ -54,67 +55,83 @@ class DataIterator(val data: RDD[Row],
 
   @throws[IOException]
   private def nextDataSet(num: Int): DataSet = {
-    val reviews = new util.ArrayList[String]()
-    val positive = new util.ArrayList[Boolean]()
+    val tweets = new ArrayBuffer[String]()
+    val positive = new ArrayBuffer[Boolean]()
     var i = 0
 
-    while (i < num && _cursor < totalExamples) {
+    while (i < num && dataCursor < totalExamples) {
 
-      val msg = dataList(_cursor).getAs[String]("msg")
-      val label = dataList(_cursor).getAs[Double]("label")
+      val msg = dataList(dataCursor).getAs[String]("msg")
+      val label = dataList(dataCursor).getAs[Double]("label")
 
       //TODO(elhawaty): Find why some rows return null.
       if (msg != null) {
-        reviews.add(msg)
-        positive.add(if (label == 1.0) true else false)
+        tweets.append(msg)
+        positive.append(if (label == 1.0) true else false)
         i += 1
       } else {
-        println("Invalid tweet:" + dataList(_cursor))
+        println("Invalid tweet:" + dataList(dataCursor))
       }
 
-      _cursor += 1
+      dataCursor += 1
     }
 
-    //Second: tokenize reviews and filter out unknown words
-    val allTokens: util.List[util.List[String]] = new util.ArrayList[util.List[String]](reviews.size)
-    var maxLength: Int = 0
-    import scala.collection.JavaConversions._
-    for (s <- reviews) {
-      val tokens = tokenizerFactory.create(s).getTokens
-      val tokensFiltered = new util.ArrayList[String]
-      for (t <- tokens.asScala) {
-        if (wordVectors.hasWord(t)) tokensFiltered.add(t)
-      }
-      allTokens.add(tokensFiltered)
-      maxLength = Math.max(maxLength, tokensFiltered.size)
-    }
+    val allTokens = removeUnkownWords(tweets)
+    var maxLength = allTokens.maxBy(_.length).length
 
     // Workaround, just in case the word2vec doesn't recognise all the words in the batch which is unlikely to happen as we are using Google word2vec.
     if (maxLength == 0) {
-      println(reviews.get(0))
-      allTokens.get(0).add("times")
-      maxLength = 1;
+      println(tweets(0))
+      allTokens(0).append("times")
+      maxLength = 1
     }
 
     //If longest review exceeds 'truncateLength': only take the first 'truncateLength' words
     if (maxLength > truncateLength) maxLength = truncateLength
 
-    //Create data for training
-    //Here: we have reviews.size() examples of varying lengths
-    val features = Nd4j.create(reviews.size, vectorSize, maxLength)
-    val labels = Nd4j.create(reviews.size, 2, maxLength)
+    transformToDataSet(allTokens, positive, maxLength)
+  }
+
+  /**
+    * Tokenize the tweets and filter out the unknown words
+    *
+    * @param tweets the tweets to be filtered
+    * @return the filtered tweets
+    */
+  private def removeUnkownWords(tweets: ArrayBuffer[String]): ArrayBuffer[mutable.Buffer[String]] = {
+    val allTokens = new ArrayBuffer[mutable.Buffer[String]](tweets.size)
+    import scala.collection.JavaConversions._
+    for (s <- tweets) {
+      val tokens = tokenizerFactory.create(s).getTokens
+      val tokensFiltered = tokens.filter(wordVectors.hasWord)
+      allTokens.append(tokensFiltered)
+    }
+    allTokens
+  }
+
+  /**
+    * Transform the tweet to a DataSet the contains the extracted Feature of the tweet and its label
+    *
+    * @param allTokens the filtered tweets
+    * @param positive  the label of a tweet
+    * @param maxLength the maximum length of a tweet
+    * @return DataSet contains both the features and the label of the tweets
+    */
+  private def transformToDataSet(allTokens: ArrayBuffer[mutable.Buffer[String]], positive: ArrayBuffer[Boolean], maxLength: Int): DataSet = {
+    val features = Nd4j.create(allTokens.size, vectorSize, maxLength)
+    val labels = Nd4j.create(allTokens.size, 2, maxLength)
     //Two labels: positive or negative because we are dealing with reviews of different lengths and only one output at the final time step: use padding arrays mask arrays contain 1 if data is present at that time step for that example, or 0 if data is just padding
-    val featuresMask = Nd4j.zeros(reviews.size, maxLength)
-    val labelsMask = Nd4j.zeros(reviews.size, maxLength)
+    val featuresMask = Nd4j.zeros(allTokens.size, maxLength)
+    val labelsMask = Nd4j.zeros(allTokens.size, maxLength)
 
     val temp = new Array[Int](2)
-    for (i <- reviews.indices) {
-      val tokens: util.List[String] = allTokens.get(i)
+    for (i <- allTokens.indices) {
+      val tokens = allTokens(i)
       temp(0) = i
       //Get word vectors for each word in review, and put them in the training data
       var j: Int = 0
       for (j <- 0 until math.min(tokens.size, maxLength)) {
-        val token = tokens.get(j)
+        val token = tokens(j)
         val vector = wordVectors.getWordVectorMatrix(token)
         features.put(Array[INDArrayIndex](NDArrayIndex.point(i), NDArrayIndex.all, NDArrayIndex.point(j)), vector)
 
@@ -122,7 +139,7 @@ class DataIterator(val data: RDD[Row],
         featuresMask.putScalar(temp, 1.0) //Word is present (not padding) for this example + time step -> 1.0 in features mask
       }
 
-      val idx = if (positive.get(i)) 0 else 1
+      val idx = if (positive(i)) 0 else 1
       val lastIdx: Int = Math.min(tokens.size, maxLength)
       labels.putScalar(Array[Int](i, idx, lastIdx - 1), 1.0) //Set label: [0,1] for negative, [1,0] for positive
       labelsMask.putScalar(Array[Int](i, lastIdx - 1), 1.0) //Specify that an output exists at the final time step for this example
@@ -141,7 +158,7 @@ class DataIterator(val data: RDD[Row],
     2
 
   def reset(): Unit =
-    _cursor = 0
+    dataCursor = 0
 
   def resetSupported: Boolean =
     true
@@ -153,7 +170,7 @@ class DataIterator(val data: RDD[Row],
     batchSize
 
   def cursor: Int =
-    _cursor
+    dataCursor
 
   def numExamples: Int =
     totalExamples
