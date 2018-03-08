@@ -42,6 +42,12 @@ class DataIterator(val data: RDD[Row],
 
   private var dataCursor: Int = 0
 
+  /**
+    * Returns a DataSet contains specific number of data tuples
+    *
+    * @param num the specified number of the tuples
+    * @return DataSet contains num tuples
+    */
   def next(num: Int): DataSet = {
     if (dataCursor >= dataList.length)
       throw new NoSuchElementException
