@@ -83,7 +83,7 @@ class DataIterator(val data: RDD[Row],
       dataCursor += 1
     }
 
-    val allTokens = removeUnkownWords(tweets)
+    val allTokens = removeUnknownWords(tweets)
     var maxLength = allTokens.maxBy(_.length).length
 
     // Workaround, just in case the word2vec doesn't recognise all the words in the batch which is unlikely to happen as we are using Google word2vec.
@@ -105,7 +105,7 @@ class DataIterator(val data: RDD[Row],
     * @param tweets the tweets to be filtered
     * @return the filtered tweets
     */
-  private def removeUnkownWords(tweets: ArrayBuffer[String]): ArrayBuffer[mutable.Buffer[String]] = {
+  private def removeUnknownWords(tweets: ArrayBuffer[String]): ArrayBuffer[mutable.Buffer[String]] = {
     val allTokens = new ArrayBuffer[mutable.Buffer[String]](tweets.size)
     import scala.collection.JavaConversions._
     for (s <- tweets) {
