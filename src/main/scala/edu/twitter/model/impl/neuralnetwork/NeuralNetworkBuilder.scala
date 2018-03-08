@@ -31,7 +31,8 @@ class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
   private val vectorSize: Int = wordVectors.getWordVector(wordVectors.vocab.wordAtIndex(0)).length // 100 in our case
 
   /**
-    * Run the recipe responsible for constructing the model.
+    * Run the recipe responsible for constructing the model if it's not already saved in the specified directory,
+    * otherwise load it directly.
     *
     * @return an instance of generic model.
     */
@@ -120,6 +121,6 @@ class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
 
   private def checkModelExist(): Boolean = {
     val file = new File(modelPath)
-    return file.exists()
+    file.exists()
   }
 }

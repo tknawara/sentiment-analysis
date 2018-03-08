@@ -20,7 +20,8 @@ class GradientBoostingBuilder(sc: SparkContext) extends GenericModelBuilder {
   private val modelPath = this.getClass().getClassLoader().getResource("saved-models").getPath() + File.separator + "GradientBoosting"
 
   /**
-    * Create a GradientBoosting Classification model using a Gradient Boosting model.
+    * Build a GradientBoosting Classification model using a Gradient Boosting model
+    * if it's not already saved in the specified directory, otherwise load it directly.
     * The reason we chose Gradient Boosting for classification over some other model
     * is because it’s easy to use (doesn’t require tons of parameter tuning), and it
     * tends to have a high classification accuracy. For this reason it is frequently

@@ -45,14 +45,21 @@ class DataIterator(val data: RDD[Row],
   def next(num: Int): DataSet = {
     if (dataCursor >= dataList.length)
       throw new NoSuchElementException
-    try {
+    try
       nextDataSet(num)
-    } catch {
+    catch {
       case e: IOException =>
         throw new RuntimeException(e)
     }
   }
 
+  /**
+    * Read the next num examples and transform them into a DataSet of features and label by
+    * tokenizing the tweet's text and convert it to set of vectors using the word2vec model.
+    *
+    * @param num the number of examples
+    * @return DataSet containing the features and labels
+    */
   @throws[IOException]
   private def nextDataSet(num: Int): DataSet = {
     val tweets = new ArrayBuffer[String]()
@@ -64,7 +71,7 @@ class DataIterator(val data: RDD[Row],
       val msg = dataList(dataCursor).getAs[String]("msg")
       val label = dataList(dataCursor).getAs[Double]("label")
 
-      //TODO(elhawaty): Find why some rows return null.
+      //TODO: Find why some rows return null.
       if (msg != null) {
         tweets.append(msg)
         positive.append(if (label == 1.0) true else false)
@@ -129,7 +136,6 @@ class DataIterator(val data: RDD[Row],
       val tokens = allTokens(i)
       temp(0) = i
       //Get word vectors for each word in review, and put them in the training data
-      var j: Int = 0
       for (j <- 0 until math.min(tokens.size, maxLength)) {
         val token = tokens(j)
         val vector = wordVectors.getWordVectorMatrix(token)
@@ -141,7 +147,7 @@ class DataIterator(val data: RDD[Row],
 
       val idx = if (positive(i)) 0 else 1
       val lastIdx: Int = Math.min(tokens.size, maxLength)
-      labels.putScalar(Array[Int](i, idx, lastIdx - 1), 1.0) //Set label: [0,1] for negative, [1,0] for positive
+      labels.putScalar(Array[Int](i, idx, lastIdx - 1), 1.0) //Set label: (_, 1, _) to 1 for negative & (_, 0, _) to 1 for positive
       labelsMask.putScalar(Array[Int](i, lastIdx - 1), 1.0) //Specify that an output exists at the final time step for this example
     }
 
