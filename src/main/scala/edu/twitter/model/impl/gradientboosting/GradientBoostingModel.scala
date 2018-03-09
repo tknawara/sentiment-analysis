@@ -12,8 +12,8 @@ import org.apache.spark.mllib.tree.model.GradientBoostedTreesModel
 class GradientBoostingModel(model: GradientBoostedTreesModel) extends GenericModel {
 
   val name: String = GradientBoostingModel.name
-  val hashingTF = new HashingTF(2000)
-  val invalidTokens = Set("http", "@", "rt", "#", "RT")
+  private val hashingTF = new HashingTF(2000)
+  private val invalidTokens = Set("http", "@", "rt", "#", "RT")
 
   override def getLabel(tweetText: String): Double = {
     val tokens = tweetText.split(" ").filter(!invalidTokens(_))
