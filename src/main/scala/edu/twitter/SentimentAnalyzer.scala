@@ -34,7 +34,7 @@ object SentimentAnalyzer extends App {
 
   val classifier = new Classifier(ssc)
   val classifiedStream = classifier.createClassifiedStream(GradientBoostingModel.name)
-  classifiedStream.foreachRDD(EsSpark.saveToEs(_, "twitter/sentiment"))
+  classifiedStream.foreachRDD(EsSpark.saveToEs(_, s"${GradientBoostingModel.name}/classified-stream"))
 
   ssc.start()
   ssc.awaitTermination()
