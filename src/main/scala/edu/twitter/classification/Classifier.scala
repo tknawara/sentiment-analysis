@@ -24,9 +24,10 @@ class Classifier(ssc: StreamingContext) {
     * Build the `Classification Model` and a `TweeterStream`
     * and return a stream of `ClassifiedTweets`.
     *
+    * @param modelName name of target model.
     * @return stream of `ClassifiedTweets`
     */
-  def createClassifiedStream(): DStream[ClassifiedTweet] = {
+  def createClassifiedStream(modelName: String): DStream[ClassifiedTweet] = {
     val tweets = new TwitterStream(ssc).createStream()
     val supportedLangIso = Set("en", "eng")
     val dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
@@ -34,7 +35,7 @@ class Classifier(ssc: StreamingContext) {
       tweet <- tweets
       if supportedLangIso(tweet.getLang)
       date = dateFormat.format(new Date())
-      resOption = ModelClient.callModelService(tweet.getText)
+      resOption = ModelClient.callModelService(modelName, tweet.getText)
       if resOption.isPresent
       res = resOption.get
     } yield ClassifiedTweet(res.getLabel, tweet.getText, date)

@@ -53,7 +53,7 @@ class ModelEvaluator(sc: SparkContext) {
     */
   def evaluate(modelName: String, path: String, persist: Boolean = false): Unit = {
     val tweetsLoader = new TweetsLoader(sc)
-    val evaluation = evaluateData(tweetsLoader.loadDataSet(path))
+    val evaluation = evaluateData(modelName, tweetsLoader.loadDataSet(path))
     performEvaluationAnalysis(evaluation)
     if (persist) {
       EsSpark.saveToEs(evaluation, s"$modelName/performance-analysis")
@@ -63,28 +63,31 @@ class ModelEvaluator(sc: SparkContext) {
   /**
     * Show how the model will perform against the given data.
     *
-    * @param data evaluation data
+    * @param modelName name of the target model for evaluation.
+    * @param data      evaluation data
     * @return rdd of `EvaluatedTrainingTweet`
     */
-  private def evaluateData(data: RDD[Row]): RDD[EvaluatedTrainingTweet] = {
+  private def evaluateData(modelName: String, data: RDD[Row]): RDD[EvaluatedTrainingTweet] = {
     val transformedData = for {
       row <- data
       actualLabel = row.getAs[Double]("label")
       tweetText = row.getAs[String]("msg")
     } yield Record(tweetText, actualLabel)
 
-    evaluateRecords(transformedData)
+    evaluateRecords(modelName, transformedData)
   }
 
   /**
     * Evaluate all the testing data.
     *
+    * @param modelName name of the target model for evaluation.
+    * @param data      evaluation data
     * @return rdd of `EvaluatedTrainingTweet` instances.
     */
-  private def evaluateRecords(data: RDD[Record]): RDD[EvaluatedTrainingTweet] = {
+  private def evaluateRecords(modelName: String, data: RDD[Record]): RDD[EvaluatedTrainingTweet] = {
     val evaluation = for {
       r <- data
-      resOption = ModelClient.callModelService(r.tweetText)
+      resOption = ModelClient.callModelService(modelName, r.tweetText)
       if resOption.isPresent
       res = resOption.get()
       modelPrediction = res.getLabel

@@ -17,7 +17,9 @@ object ModelClientServiceTest {
     val modelService = new ModelService(new TestGenericModelBuilder())
     modelService.start()
 
-    val resp = ModelClient.callModelService("hello")
+    val modeName = "TestGenericModel"
+    val tweet = "hello"
+    val resp = ModelClient.callModelService(modeName, tweet)
     println(resp.get().getLabel)
   }
 

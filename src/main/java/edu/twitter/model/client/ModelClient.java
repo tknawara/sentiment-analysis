@@ -21,7 +21,7 @@ import java.util.Optional;
 public final class ModelClient {
     private static final CloseableHttpClient HTTP_CLIENT = HttpClients.createDefault();
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final String API_URL = "http://localhost:8080/classify?tweet=";
+    private static final String API_URL_TEMPLATE = "http://localhost:8080/%s/classify?tweet=%s";
 
     /**
      * Constructor.
@@ -33,12 +33,14 @@ public final class ModelClient {
      * Perform a Get request to the model's service
      * to get the label of the tweet.
      *
-     * @param tweet tweet's text
+     * @param modelName name of the target model.
+     * @param tweet     tweet's text
      * @return optional of `ModelServiceResponse`
      */
-    public static Optional<ModelServiceResponse> callModelService(final String tweet) {
+    public static Optional<ModelServiceResponse> callModelService(final String modelName, final String tweet) {
         final String encodedTweet = new String(Base64.getUrlEncoder().encode(tweet.getBytes(StandardCharsets.UTF_16)));
-        return executeRequest(API_URL + encodedTweet, ModelServiceResponse.class);
+        final String url = String.format(API_URL_TEMPLATE, modelName, encodedTweet);
+        return executeRequest(url, ModelServiceResponse.class);
     }
 
     /**

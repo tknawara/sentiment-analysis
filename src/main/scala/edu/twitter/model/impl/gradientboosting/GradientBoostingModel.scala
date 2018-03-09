@@ -11,7 +11,7 @@ import org.apache.spark.mllib.tree.model.GradientBoostedTreesModel
   */
 class GradientBoostingModel(model: GradientBoostedTreesModel) extends GenericModel {
 
-  val name = "GradientBoosting"
+  val name: String = GradientBoostingModel.name
   val hashingTF = new HashingTF(2000)
   val invalidTokens = Set("http", "@", "rt", "#", "RT")
 
@@ -20,4 +20,10 @@ class GradientBoostingModel(model: GradientBoostedTreesModel) extends GenericMod
     val features = hashingTF.transform(tokens)
     model.predict(features)
   }
+}
+
+/** Companion object for the model
+  * only holding the name. */
+object GradientBoostingModel {
+  val name = "GradientBoosting"
 }

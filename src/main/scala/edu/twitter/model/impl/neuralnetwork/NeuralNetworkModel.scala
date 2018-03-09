@@ -18,8 +18,8 @@ import org.nd4j.linalg.indexing.{INDArrayIndex, NDArrayIndex}
 class NeuralNetworkModel(model: MultiLayerNetwork,
                          wordVectors: WordVectors) extends GenericModel {
 
-  val name = "NeuralNetwork"
-  val vectorSize = wordVectors.getWordVector(wordVectors.vocab.wordAtIndex(0)).length
+  val name: String = NeuralNetworkModel.name
+  private val vectorSize = wordVectors.getWordVector(wordVectors.vocab.wordAtIndex(0)).length
 
   /**
     * Classify the given tweet.
@@ -62,4 +62,11 @@ class NeuralNetworkModel(model: MultiLayerNetwork,
   }
 
 
+}
+
+
+/** Companion object for the model
+  * only holding the name. */
+object NeuralNetworkModel {
+  val name = "NeuralNetwork"
 }
