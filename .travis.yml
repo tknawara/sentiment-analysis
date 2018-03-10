@@ -2,5 +2,6 @@ language: java
 sudo: false # faster builds
 
 script:
-        - gradle build
-
+       - gradle build
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
