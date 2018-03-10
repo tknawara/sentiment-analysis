@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/tarek-nawara/sentiment-analysis.svg?branch=master)](https://travis-ci.org/tarek-nawara/sentiment-analysis)
+[![Coverage Status](https://coveralls.io/repos/github/tarek-nawara/sentiment-analysis/badge.svg?branch=master)](https://coveralls.io/github/tarek-nawara/sentiment-analysis?branch=master)
 
 # sentiment-analysis
 Simple show case of consuming twitter api and performing sentiment analysis over tweets
