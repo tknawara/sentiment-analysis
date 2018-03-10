@@ -3,10 +3,13 @@ package edu.twitter.model.service
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import edu.twitter.model.client.ModelClient
+import org.junit.runner.RunWith
 import org.scalatest.FunSuite
+import org.scalatest.junit.JUnitRunner
 
 import scala.concurrent.ExecutionContextExecutor
 
+@RunWith(classOf[JUnitRunner])
 class ModelClientServiceSuite extends FunSuite {
   test("the model client's result should match the model's response") {
     implicit val system: ActorSystem = ActorSystem("twitter-actor-system")
