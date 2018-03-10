@@ -36,7 +36,7 @@ class ModelService(genericModelBuilder: GenericModelBuilder)
   def start(): Unit = {
     val model = genericModelBuilder.build()
     val route: Route =
-      path("classify") {
+      path(s"${model.name}" / "classify") {
         get {
           parameters('tweet.as[String]) { tweet =>
             val decodedTweet = new String(Base64.getUrlDecoder.decode(tweet), Charset.forName("UTF-16"))

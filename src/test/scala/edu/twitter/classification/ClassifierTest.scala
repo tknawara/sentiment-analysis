@@ -2,7 +2,7 @@ package edu.twitter.classification
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import edu.twitter.model.impl.gradientboosting.GradientBoostingBuilder
+import edu.twitter.model.impl.gradientboosting.{GradientBoostingBuilder, GradientBoostingModel}
 import edu.twitter.model.service.ModelService
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext}
@@ -23,7 +23,7 @@ object ClassifierTest {
     modelService.start()
 
     val classifier = new Classifier(ssc)
-    val classifiedStream = classifier.createClassifiedStream()
+    val classifiedStream = classifier.createClassifiedStream(GradientBoostingModel.name)
     classifiedStream.foreachRDD(rdd => rdd.take(10).foreach(println(_)))
 
     ssc.start()

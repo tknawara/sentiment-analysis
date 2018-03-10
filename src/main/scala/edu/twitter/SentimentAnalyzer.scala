@@ -3,7 +3,7 @@ package edu.twitter
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import edu.twitter.classification.Classifier
-import edu.twitter.model.impl.gradientboosting.GradientBoostingBuilder
+import edu.twitter.model.impl.gradientboosting.{GradientBoostingBuilder, GradientBoostingModel}
 import edu.twitter.model.service.ModelService
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext}
@@ -33,8 +33,8 @@ object SentimentAnalyzer extends App {
   modelService.start()
 
   val classifier = new Classifier(ssc)
-  val classifiedStream = classifier.createClassifiedStream()
-  classifiedStream.foreachRDD(EsSpark.saveToEs(_, "twitter/sentiment"))
+  val classifiedStream = classifier.createClassifiedStream(GradientBoostingModel.name)
+  classifiedStream.foreachRDD(EsSpark.saveToEs(_, s"${GradientBoostingModel.name}/classified-stream"))
 
   ssc.start()
   ssc.awaitTermination()
