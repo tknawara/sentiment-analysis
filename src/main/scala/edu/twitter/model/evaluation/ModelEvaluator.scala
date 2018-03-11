@@ -7,7 +7,6 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
 import org.elasticsearch.spark.rdd.EsSpark
-import org.slf4j.LoggerFactory
 
 /** Representation of the records used for training
   * and testing the model. */
@@ -46,7 +45,7 @@ case class EvaluatedTrainingTweet(actualLabel: Double, modelPrediction: Double, 
   */
 class ModelEvaluator(sc: SparkContext) {
 
-  private val logger = Logger(LoggerFactory.getLogger(classOf[ModelEvaluator]))
+  private val logger = Logger(classOf[ModelEvaluator])
 
   /**
     * Show how the model will perform against a

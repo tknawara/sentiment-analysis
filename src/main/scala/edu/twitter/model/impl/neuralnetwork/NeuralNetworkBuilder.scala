@@ -15,14 +15,13 @@ import org.deeplearning4j.nn.weights.WeightInit
 import org.deeplearning4j.util.ModelSerializer
 import org.nd4j.linalg.activations.Activation
 import org.nd4j.linalg.lossfunctions.LossFunctions
-import org.slf4j.LoggerFactory
 
 /**
   * Build and evaluate the Neural network model from training and testing data set.
   */
 class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
 
-  private val logger = Logger(LoggerFactory.getLogger(classOf[NeuralNetworkBuilder]))
+  private val logger = Logger(classOf[NeuralNetworkBuilder])
   private val modelPath = this.getClass().getClassLoader().getResource("saved-models").getPath() + File.separator + "NeuralNetworkModel.net"
 
   /** Location (local file system) for the Google News vectors. */

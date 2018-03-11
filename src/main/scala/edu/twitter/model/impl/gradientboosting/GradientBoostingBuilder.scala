@@ -12,14 +12,13 @@ import org.apache.spark.mllib.tree.GradientBoostedTrees
 import org.apache.spark.mllib.tree.configuration.BoostingStrategy
 import org.apache.spark.mllib.tree.model.GradientBoostedTreesModel
 import org.apache.spark.rdd.RDD
-import org.slf4j.LoggerFactory
 
 /**
   * Build and evaluate a gradient boosting model from training and testing data set.
   */
 class GradientBoostingBuilder(sc: SparkContext) extends GenericModelBuilder {
 
-  private val logger = Logger(LoggerFactory.getLogger(classOf[GradientBoostingModel]))
+  private val logger = Logger(classOf[GradientBoostingModel])
   private val modelPath = this.getClass().getClassLoader().getResource("saved-models").getPath() + File.separator + "GradientBoosting"
 
   /**

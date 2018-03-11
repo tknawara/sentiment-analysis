@@ -15,7 +15,6 @@ import org.nd4j.linalg.dataset.api.DataSetPreProcessor
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.indexing.{INDArrayIndex, NDArrayIndex}
-import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -38,7 +37,7 @@ class DataIterator(val data: RDD[Row],
 
   private final val vectorSize = wordVectors.getWordVector(wordVectors.vocab.wordAtIndex(0)).length
 
-  private val logger = Logger(LoggerFactory.getLogger(classOf[DataIterator]))
+  private val logger = Logger(classOf[DataIterator])
   private val dataList = data.collect()
   final private val tokenizerFactory: TokenizerFactory = new DefaultTokenizerFactory
   tokenizerFactory.setTokenPreProcessor(new CommonPreprocessor)

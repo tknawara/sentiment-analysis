@@ -4,14 +4,13 @@ import com.typesafe.scalalogging.Logger
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Row}
-import org.slf4j.LoggerFactory
 
 /**
   * Loader loads all tweets model data this data is static data in FS not HDFS.
   */
 class TweetsLoader(sc: SparkContext) {
 
-  private val logger = Logger(LoggerFactory.getLogger(classOf[TweetsLoader]))
+  private val logger = Logger(classOf[TweetsLoader])
   private val tweetsJsonParser = new JsonParser(sc)
 
   /**
