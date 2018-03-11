@@ -1,13 +1,17 @@
 package edu.twitter.model.impl
 
+import com.typesafe.scalalogging.Logger
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Row}
+import org.slf4j.LoggerFactory
 
 /**
   * Loader loads all tweets model data this data is static data in FS not HDFS.
   */
 class TweetsLoader(sc: SparkContext) {
+
+  private val logger = Logger(LoggerFactory.getLogger(classOf[TweetsLoader]))
   private val tweetsJsonParser = new JsonParser(sc)
 
   /**
@@ -31,11 +35,11 @@ class TweetsLoader(sc: SparkContext) {
   private def equalizeDataSet(messages: DataFrame): RDD[Row] = {
     val happyMessages = messages.filter(messages("label").contains("1.0"))
     val countHappy = happyMessages.count()
-    println("Number of happy messages: " + countHappy)
+    logger.info("Number of happy messages: " + countHappy)
 
     val unhappyMessages = messages.filter(messages("label").contains("0.0"))
     val countUnhappy = unhappyMessages.count()
-    println("Unhappy Messages: " + countUnhappy)
+    logger.info("Unhappy Messages: " + countUnhappy)
     val smallest = Math.min(countHappy, countUnhappy).toInt
     happyMessages.limit(smallest).union(unhappyMessages.limit(smallest)).rdd
   }

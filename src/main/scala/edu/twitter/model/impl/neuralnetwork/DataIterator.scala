@@ -4,6 +4,7 @@ import java.io.IOException
 import java.util
 import java.util.NoSuchElementException
 
+import com.typesafe.scalalogging.Logger
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors
@@ -14,6 +15,7 @@ import org.nd4j.linalg.dataset.api.DataSetPreProcessor
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.indexing.{INDArrayIndex, NDArrayIndex}
+import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -36,6 +38,7 @@ class DataIterator(val data: RDD[Row],
 
   private final val vectorSize = wordVectors.getWordVector(wordVectors.vocab.wordAtIndex(0)).length
 
+  private val logger = Logger(LoggerFactory.getLogger(classOf[DataIterator]))
   private val dataList = data.collect()
   final private val tokenizerFactory: TokenizerFactory = new DefaultTokenizerFactory
   tokenizerFactory.setTokenPreProcessor(new CommonPreprocessor)
@@ -83,7 +86,7 @@ class DataIterator(val data: RDD[Row],
         positive.append(if (label == 1.0) true else false)
         i += 1
       } else {
-        println("Invalid tweet:" + dataList(dataCursor))
+        logger.warn("Invalid tweet:" + dataList(dataCursor))
       }
 
       dataCursor += 1
@@ -94,7 +97,7 @@ class DataIterator(val data: RDD[Row],
 
     // Workaround, just in case the word2vec doesn't recognise all the words in the batch which is unlikely to happen as we are using Google word2vec.
     if (maxLength == 0) {
-      println(tweets(0))
+      logger.warn(s"The model didn't recognise any word $tweets")
       allTokens(0).append("times")
       maxLength = 1
     }

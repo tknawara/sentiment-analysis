@@ -1,11 +1,13 @@
 package edu.twitter.model.evaluation
 
+import com.typesafe.scalalogging.Logger
 import edu.twitter.model.client.ModelClient
 import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
 import org.elasticsearch.spark.rdd.EsSpark
+import org.slf4j.LoggerFactory
 
 /** Representation of the records used for training
   * and testing the model. */
@@ -43,6 +45,9 @@ case class EvaluatedTrainingTweet(actualLabel: Double, modelPrediction: Double, 
   * @param sc spark context.
   */
 class ModelEvaluator(sc: SparkContext) {
+
+  private val logger = Logger(LoggerFactory.getLogger(classOf[ModelEvaluator]))
+
   /**
     * Show how the model will perform against a
     * prelabeled data.
@@ -112,14 +117,14 @@ class ModelEvaluator(sc: SparkContext) {
       (e1, e2) => e1 + e2
     )
 
-    println(s"=============== $dataSetType Evaluation ==================")
-    println(s"sad messages=${e.sadTotal}, happy messages=${e.happyTotal}")
-    println(s"happy % correct=${e.happyCorrect.toDouble / e.happyTotal}")
-    println(s"sad % correct=${e.sadCorrect.toDouble / e.sadTotal}")
+    logger.info(s"=============== $dataSetType Evaluation ==================")
+    logger.info(s"sad messages=${e.sadTotal}, happy messages=${e.happyTotal}")
+    logger.info(s"happy % correct=${e.happyCorrect.toDouble / e.happyTotal}")
+    logger.info(s"sad % correct=${e.sadCorrect.toDouble / e.sadTotal}")
 
     val recordCount = evaluation.count()
     val testErr = evaluation.filter(t => t.actualLabel != t.modelPrediction).count.toDouble / recordCount
-    println(s"data size=$recordCount")
-    println(s"Test Error=$testErr")
+    logger.info(s"data size=$recordCount")
+    logger.info(s"Test Error=$testErr")
   }
 }

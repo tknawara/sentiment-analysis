@@ -2,6 +2,7 @@ package edu.twitter.model.impl.gradientboosting
 
 import java.io.File
 
+import com.typesafe.scalalogging.Logger
 import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
 import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
@@ -11,12 +12,14 @@ import org.apache.spark.mllib.tree.GradientBoostedTrees
 import org.apache.spark.mllib.tree.configuration.BoostingStrategy
 import org.apache.spark.mllib.tree.model.GradientBoostedTreesModel
 import org.apache.spark.rdd.RDD
+import org.slf4j.LoggerFactory
 
 /**
   * Build and evaluate a gradient boosting model from training and testing data set.
   */
 class GradientBoostingBuilder(sc: SparkContext) extends GenericModelBuilder {
 
+  private val logger = Logger(LoggerFactory.getLogger(classOf[GradientBoostingModel]))
   private val modelPath = this.getClass().getClassLoader().getResource("saved-models").getPath() + File.separator + "GradientBoosting"
 
   /**
@@ -34,6 +37,7 @@ class GradientBoostingBuilder(sc: SparkContext) extends GenericModelBuilder {
     */
   def build(): GenericModel = {
     if (checkModelExist()) {
+      logger.info("The model is already trained, load it directly")
       return new GradientBoostingModel(GradientBoostedTreesModel.load(sc, modelPath))
     }
 
@@ -67,18 +71,18 @@ class GradientBoostingBuilder(sc: SparkContext) extends GenericModelBuilder {
       (prediction, label)
     }
 
-    println(s"================ $setType ==================")
+    logger.info(s"================ $setType ==================")
     val metrics = new MulticlassMetrics(predictionAndLabels)
 
     val accuracy = metrics.accuracy
-    println("Summary Statistics")
-    println(s"Accuracy = $accuracy")
+    logger.info("Summary Statistics")
+    logger.info(s"Accuracy = $accuracy")
 
     metrics.labels.foreach { l =>
-      println(s"Precision($l) = ${metrics.precision(l)}")
-      println(s"Recall($l) = ${metrics.recall(l)}")
-      println(s"FPR($l) = ${metrics.falsePositiveRate(l)}")
-      println(s"F1-Score($l) = ${metrics.fMeasure(l)}")
+      logger.info(s"Precision($l) = ${metrics.precision(l)}")
+      logger.info(s"Recall($l) = ${metrics.recall(l)}")
+      logger.info(s"FPR($l) = ${metrics.falsePositiveRate(l)}")
+      logger.info(s"F1-Score($l) = ${metrics.fMeasure(l)}")
     }
   }
 
