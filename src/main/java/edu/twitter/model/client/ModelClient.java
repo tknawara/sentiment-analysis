@@ -7,6 +7,8 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -19,6 +21,8 @@ import java.util.Optional;
  * with the model service.
  */
 public final class ModelClient {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ModelClient.class);
     private static final CloseableHttpClient HTTP_CLIENT = HttpClients.createDefault();
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String API_URL_TEMPLATE = "http://localhost:8080/%s/classify?tweet=%s";
@@ -61,7 +65,7 @@ public final class ModelClient {
                     MAPPER.readValue(IOUtils.toString(entity.getContent(), Charset.defaultCharset()), valueType);
             return Optional.of(modelServiceResponse);
         } catch (final IOException e) {
-            e.printStackTrace();
+            LOGGER.warn("Error in calling the model service: {}", e);
             return Optional.empty();
         }
     }

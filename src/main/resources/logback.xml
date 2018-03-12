@@ -1,0 +1,50 @@
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="AllAppender" class="ch.qos.logback.core.FileAppender">
+        <file>log/all.log</file>
+        <append>false</append>
+        <immediateFlush>true</immediateFlush>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ModelAppender" class="ch.qos.logback.core.FileAppender">
+        <file>log/model.log</file>
+        <immediateFlush>true</immediateFlush>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="EvaluationAppender" class="ch.qos.logback.core.FileAppender">
+        <file>log/evaluator.log</file>
+        <immediateFlush>true</immediateFlush>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="AllAppender"/>
+    </root>
+
+    <logger name="org" level="INFO"/>
+    <logger name="io.netty" level="INFO"/>
+
+    <logger name="edu.twitter.model">
+        <appender-ref ref="ModelAppender"/>
+    </logger>
+
+    <logger name="edu.twitter.model.evaluation">
+        <appender-ref ref="EvaluationAppender"/>
+    </logger>
+
+</configuration>

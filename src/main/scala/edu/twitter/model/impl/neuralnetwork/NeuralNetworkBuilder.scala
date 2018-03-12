@@ -2,6 +2,7 @@ package edu.twitter.model.impl.neuralnetwork
 
 import java.io._
 
+import com.typesafe.scalalogging.Logger
 import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
 import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
@@ -20,6 +21,7 @@ import org.nd4j.linalg.lossfunctions.LossFunctions
   */
 class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
 
+  private val logger = Logger(classOf[NeuralNetworkBuilder])
   private val modelPath = this.getClass().getClassLoader().getResource("saved-models").getPath() + File.separator + "NeuralNetworkModel.net"
 
   /** Location (local file system) for the Google News vectors. */
@@ -60,7 +62,7 @@ class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
     val net = new MultiLayerNetwork(conf)
     net.init()
 
-    println("Starting training")
+    logger.info("Starting training")
     for (i <- 0 until nEpochs) {
       net.fit(train)
       train.reset()
@@ -114,9 +116,9 @@ class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
     }
     dataIterator.reset()
 
-    println(s"================ $setType ==================")
-    println("Epoch Number " + EpochNumber + ":")
-    println(evaluation.stats)
+    logger.info(s"================ $setType ==================")
+    logger.info("Epoch Number " + EpochNumber + ":")
+    logger.info(evaluation.stats)
   }
 
   private def checkModelExist(): Boolean = {
