@@ -11,7 +11,7 @@ apply plugin: 'jacoco'
 
 sourceCompatibility = 1.8
 
-applicationDefaultJvmArgs = ['-Xms5000m']
+applicationDefaultJvmArgs = ['-Xms5g']
 
 mainClassName = 'edu.twitter.SentimentAnalyzer'
 
