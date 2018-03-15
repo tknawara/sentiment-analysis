@@ -1,0 +1,19 @@
+{
+  "sentiment": {
+    "properties": {
+      "label": {
+        "type": "double"
+      },
+      "tweetText": {
+        "type": "text"
+      },
+      "date": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss"
+      },
+      "location": {
+        "type": "geo_point"
+      }
+    }
+  }
+}

@@ -47,6 +47,8 @@ dependencies {
     compile group: 'com.typesafe.scala-logging', name: 'scala-logging_2.11', version: '3.8.0'
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
     compile group: 'ch.qos.logback', name: 'logback-core', version: '1.2.3'
+    compile 'com.sksamuel.elastic4s:elastic4s-core_2.11:6.1.4'
+    compile 'com.sksamuel.elastic4s:elastic4s-http_2.11:6.1.4'
 
     testCompile group: 'org.scalatest', name: 'scalatest_2.11', version: '3.0.5'
     testCompile group: 'org.spockframework', name: 'spock-core', version: '1.1-groovy-2.4'
