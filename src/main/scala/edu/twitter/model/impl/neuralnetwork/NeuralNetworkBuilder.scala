@@ -8,10 +8,11 @@ import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
 import org.deeplearning4j.eval.Evaluation
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer
-import org.deeplearning4j.nn.conf.layers.{GravesLSTM, RnnOutputLayer}
+import org.deeplearning4j.nn.conf.layers.{GravesLSTM, RnnOutputLayer, DenseLayer, OutputLayer}
 import org.deeplearning4j.nn.conf.{GradientNormalization, MultiLayerConfiguration, NeuralNetConfiguration, Updater}
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
 import org.deeplearning4j.nn.weights.WeightInit
+import org.deeplearning4j.nn.api.OptimizationAlgorithm
 import org.deeplearning4j.util.ModelSerializer
 import org.nd4j.linalg.activations.Activation
 import org.nd4j.linalg.lossfunctions.LossFunctions
@@ -79,20 +80,29 @@ class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
     */
   private def buildConfig(): MultiLayerConfiguration = {
     new NeuralNetConfiguration.Builder()
-      .updater(Updater.ADAM)
-      .regularization(true)
-      .l2(1e-5)
-      .weightInit(WeightInit.XAVIER)
-      .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue)
-      .gradientNormalizationThreshold(1.0)
-      .learningRate(0.02)
-      .list
-      .layer(0, new GravesLSTM.Builder().nIn(vectorSize).nOut(256)
-        .activation(Activation.TANH)
+      .seed(123)
+      .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+      .iterations(20)
+      .learningRate(0.006)
+      .updater(Updater.NESTEROVS).momentum(0.9)
+      .regularization(true).l2(1e-4)
+      .list()
+
+      .layer(0, new DenseLayer.Builder()
+        .nIn(vectorSize)
+        .nOut(256) // Number of output datapoints.
+        .activation("relu") // Activation function.
+        .weightInit(WeightInit.XAVIER) // Weight initialization.
         .build())
-      .layer(1, new RnnOutputLayer.Builder().activation(Activation.SOFTMAX)
-        .lossFunction(LossFunctions.LossFunction.MCXENT).nIn(256).nOut(2).build)
-      .pretrain(false).backprop(true).build()
+
+      .layer(1, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
+        .nIn(256)
+        .nOut(2)
+        .activation("softmax")
+        .weightInit(WeightInit.XAVIER)
+        .build())
+      .pretrain(false).backprop(true)
+      .build();
   }
 
   /**
