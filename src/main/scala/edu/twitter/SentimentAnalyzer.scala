@@ -32,6 +32,7 @@ object SentimentAnalyzer extends App {
   classifiedStream.foreachRDD(EsSpark.saveToEs(_, "twitter/sentiment"))
 
   ssc.start()
+  modelService.stop()
   ssc.awaitTermination()
   ssc.stop(true)
 

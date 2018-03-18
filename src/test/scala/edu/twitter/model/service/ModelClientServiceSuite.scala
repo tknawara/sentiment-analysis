@@ -20,6 +20,8 @@ class ModelClientServiceSuite extends FunSuite with BeforeAndAfterAll {
   }
 
   override def afterAll(): Unit = {
-    modelService.stop()
+    if (modelService != null) {
+      modelService.stop()
+    }
   }
 }
