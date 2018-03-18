@@ -5,6 +5,7 @@ import java.util.Base64
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
@@ -13,7 +14,7 @@ import edu.twitter.model.api.GenericModelBuilder
 import spray.json.DefaultJsonProtocol._
 import spray.json.RootJsonFormat
 
-import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.{ExecutionContextExecutor, Future}
 
 /** Representation of the model's response.
   * This case class will be converted to Json and
@@ -27,13 +28,11 @@ case class TweetLabel(label: Double)
   *                            the model.
   */
 class ModelService(genericModelBuilder: GenericModelBuilder) {
-  implicit val system: ActorSystem = ActorSystem("twitter-actor-system")
-  implicit val materializer: ActorMaterializer = ActorMaterializer()
-  implicit val executionContext: ExecutionContextExecutor = system.dispatcher
-
+  private var bindingFuture: Future[ServerBinding] = _
   implicit val tweetLabelFormat: RootJsonFormat[TweetLabel] = jsonFormat1(TweetLabel)
 
   def start(): Unit = {
+    import ModelService._
     val model = genericModelBuilder.build()
     val route: Route =
       path(s"${model.name}" / "classify") {
@@ -45,7 +44,16 @@ class ModelService(genericModelBuilder: GenericModelBuilder) {
         }
       }
 
-    Http().bindAndHandle(route, "localhost", 8080)
+    bindingFuture = Http().bindAndHandle(route, "localhost", 8080)
   }
 
+  def stop(): Unit = {
+    if (bindingFuture != null) bindingFuture.flatMap(_.unbind())
+  }
+}
+
+object ModelService {
+  implicit val system: ActorSystem = ActorSystem("twitter-actor-system")
+  implicit val materializer: ActorMaterializer = ActorMaterializer()
+  implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 }

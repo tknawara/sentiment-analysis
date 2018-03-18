@@ -8,7 +8,6 @@ import org.scalatest.junit.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class CleanTweetSuite extends FunSuite {
   test("applying filtering over the tweet text should remove references and mentions") {
-
     val tweet = "FlemingYoung happy bday to #my boy C https//tco/LmjhzggruZ"
     val res = TweetTextFilter.filterTweet(tweet)
     println(res)

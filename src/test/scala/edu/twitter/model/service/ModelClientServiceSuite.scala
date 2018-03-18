@@ -2,19 +2,24 @@ package edu.twitter.model.service
 
 import edu.twitter.model.client.ModelClient
 import org.junit.runner.RunWith
-import org.scalatest.FunSuite
+import org.scalatest.{BeforeAndAfterAll, FunSuite}
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ModelClientServiceSuite extends FunSuite {
-  test("the model client's result should match the model's response") {
-    val modelService = new ModelService(new TestGenericModelBuilder())
+class ModelClientServiceSuite extends FunSuite with BeforeAndAfterAll {
+  @transient private var modelService: ModelService = _
+
+  override def beforeAll(): Unit = {
+    modelService = new ModelService(new TestGenericModelBuilder())
     modelService.start()
+  }
 
-    val modeName = "TestGenericModel"
-    val tweet = "hello"
-    val resp = ModelClient.callModelService(modeName, tweet)
-
+  test("the model client's result should match the model's response") {
+    val resp = ModelClient.callModelService(TestGenericModel.name, "hello")
     assert(resp.get().getLabel == TestGenericModel.fixedLabel)
+  }
+
+  override def afterAll(): Unit = {
+    modelService.stop()
   }
 }
