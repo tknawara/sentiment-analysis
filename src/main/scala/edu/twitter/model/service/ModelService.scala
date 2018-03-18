@@ -31,8 +31,9 @@ class ModelService(genericModelBuilder: GenericModelBuilder) {
   private var bindingFuture: Future[ServerBinding] = _
   implicit val tweetLabelFormat: RootJsonFormat[TweetLabel] = jsonFormat1(TweetLabel)
 
+  import ModelService._
+
   def start(): Unit = {
-    import ModelService._
     val model = genericModelBuilder.build()
     val route: Route =
       path(s"${model.name}" / "classify") {
