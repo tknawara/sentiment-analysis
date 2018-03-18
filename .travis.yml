@@ -1,8 +1,6 @@
 language: java
 sudo: false # faster builds
 
-before_script:
-  - kill -9 $(lsof -t -i:8080)
 script:
   - gradle build
   - gradle test
