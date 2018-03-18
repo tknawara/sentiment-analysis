@@ -2,7 +2,6 @@ language: java
 sudo: false # faster builds
 
 script:
-  - gradle build
   - gradle test
   - gradle jacocoTestReport
 after_success:
