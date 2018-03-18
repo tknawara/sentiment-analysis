@@ -23,6 +23,6 @@ class ModelClientServiceSuite extends FunSuite {
     val tweet = "hello"
     val resp = ModelClient.callModelService(modeName, tweet)
 
-    assert(resp.get().getLabel == 0)
+    assert(resp.get().getLabel == TestGenericModel.fixedLabel)
   }
 }

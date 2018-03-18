@@ -8,12 +8,12 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import akka.stream.Materializer
+import akka.stream.ActorMaterializer
 import edu.twitter.model.api.GenericModelBuilder
 import spray.json.DefaultJsonProtocol._
 import spray.json.RootJsonFormat
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContextExecutor
 
 /** Representation of the model's response.
   * This case class will be converted to Json and
@@ -26,10 +26,10 @@ case class TweetLabel(label: Double)
   * @param genericModelBuilder instance holding the recipe for building
   *                            the model.
   */
-class ModelService(genericModelBuilder: GenericModelBuilder)
-                  (implicit val executionContext: ExecutionContext,
-                   implicit val system: ActorSystem,
-                   implicit val materializer: Materializer) {
+class ModelService(genericModelBuilder: GenericModelBuilder) {
+  implicit val system: ActorSystem = ActorSystem("twitter-actor-system")
+  implicit val materializer: ActorMaterializer = ActorMaterializer()
+  implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
   implicit val tweetLabelFormat: RootJsonFormat[TweetLabel] = jsonFormat1(TweetLabel)
 

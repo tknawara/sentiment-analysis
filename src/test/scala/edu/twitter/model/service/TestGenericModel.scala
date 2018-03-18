@@ -3,7 +3,7 @@ package edu.twitter.model.service
 import edu.twitter.model.api.GenericModel
 
 class TestGenericModel extends GenericModel {
-  override def name: String = "TestGenericModel"
+  override def name: String = TestGenericModel.name
 
   /**
     * Classify the given tweet.
@@ -11,5 +11,10 @@ class TestGenericModel extends GenericModel {
     * @param tweetText target tweet message for classification.
     * @return 0 for sad & 1 for happy
     */
-  override def getLabel(tweetText: String): Double = 0.0
+  override def getLabel(tweetText: String): Double = TestGenericModel.fixedLabel
+}
+
+object TestGenericModel {
+  val name = "TestGenericModel"
+  val fixedLabel = 0.0
 }

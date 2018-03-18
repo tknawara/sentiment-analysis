@@ -1,6 +1,7 @@
 package edu.twitter.model.impl.gradientboosting
 
 import edu.twitter.model.api.GenericModel
+import edu.twitter.model.impl.TweetTextFilter
 import org.apache.spark.mllib.feature.HashingTF
 import org.apache.spark.mllib.tree.model.GradientBoostedTreesModel
 
@@ -13,10 +14,9 @@ class GradientBoostingModel(model: GradientBoostedTreesModel) extends GenericMod
 
   val name: String = GradientBoostingModel.name
   private val hashingTF = new HashingTF(2000)
-  private val invalidTokens = Set("http", "@", "rt", "#", "RT")
 
   override def getLabel(tweetText: String): Double = {
-    val tokens = tweetText.split(" ").filter(!invalidTokens(_))
+    val tokens = TweetTextFilter.filterTweet(tweetText).split(" ")
     val features = hashingTF.transform(tokens)
     model.predict(features)
   }
