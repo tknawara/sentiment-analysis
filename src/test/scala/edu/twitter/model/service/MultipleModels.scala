@@ -2,8 +2,8 @@ package edu.twitter.model.service
 
 import edu.twitter.model.client.ModelClient
 import org.junit.runner.RunWith
-import org.scalatest.{BeforeAndAfterAll, FunSuite}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{BeforeAndAfterAll, FunSuite}
 
 @RunWith(classOf[JUnitRunner])
 class MultipleModels extends FunSuite with BeforeAndAfterAll {

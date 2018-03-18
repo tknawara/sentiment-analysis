@@ -2,8 +2,8 @@ package edu.twitter.model.impl.gradientboosting
 
 import org.apache.spark.{SparkConf, SparkContext}
 import org.junit.runner.RunWith
-import org.scalatest.{BeforeAndAfterAll, FunSuite}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{BeforeAndAfterAll, FunSuite}
 
 import scala.util.Try
 
