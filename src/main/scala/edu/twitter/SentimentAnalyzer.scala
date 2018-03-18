@@ -22,8 +22,6 @@ object SentimentAnalyzer extends App {
   val sc = new SparkContext(conf)
   val ssc = new StreamingContext(sc, Seconds(10))
 
-  val tweets = new TwitterStream(ssc).createStream()
-
   val modelService = new ModelService(List(new GradientBoostingBuilder(sc)))
   modelService.start()
 
@@ -32,9 +30,9 @@ object SentimentAnalyzer extends App {
   classifiedStream.foreachRDD(EsSpark.saveToEs(_, "twitter/sentiment"))
 
   ssc.start()
-  modelService.stop()
   ssc.awaitTermination()
   ssc.stop(true)
+  modelService.stop()
 
   if (sc != null) {
     sc.stop()

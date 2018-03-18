@@ -10,7 +10,7 @@ import org.scalatest.{BeforeAndAfterAll, FunSuite}
 import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
-class ModelEvaluatorTest extends FunSuite with BeforeAndAfterAll {
+class ModelEvaluatorSuite extends FunSuite with BeforeAndAfterAll {
   @transient private var sc: SparkContext = _
   @transient private var modelService: ModelService = _
 
