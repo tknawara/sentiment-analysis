@@ -51,7 +51,7 @@ class ModelService(builders: Seq[GenericModelBuilder]) {
     }
 
     val route = routes.reduce(_ ~ _)
-    bindingFuture = Http().bindAndHandle(route, "localhost", 8080)
+    bindingFuture = Http().bindAndHandle(route, "0.0.0.0", 8080)
   }
 
   def stop(): Unit = {

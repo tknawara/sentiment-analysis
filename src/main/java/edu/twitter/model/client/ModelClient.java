@@ -25,7 +25,7 @@ public final class ModelClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModelClient.class);
     private static final CloseableHttpClient HTTP_CLIENT = HttpClients.createDefault();
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final String API_URL_TEMPLATE = "http://localhost:8080/%s/classify?tweet=%s";
+    private static final String API_URL_TEMPLATE = "http://0.0.0.0:8080/%s/classify?tweet=%s";
 
     /**
      * Constructor.
