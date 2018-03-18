@@ -24,7 +24,7 @@ object SentimentAnalyzer extends App {
 
   val tweets = new TwitterStream(ssc).createStream()
 
-  val modelService = new ModelService(new GradientBoostingBuilder(sc))
+  val modelService = new ModelService(List(new GradientBoostingBuilder(sc)))
   modelService.start()
 
   val classifier = new Classifier(ssc)

@@ -1,8 +1,9 @@
 language: java
 sudo: false # faster builds
 
+before_script:
+  - kill -9 $(lsof -t -i:8080)
 script:
-  - fuser -k 8080/tcp
   - gradle build
   - gradle test
   - gradle jacocoTestReport

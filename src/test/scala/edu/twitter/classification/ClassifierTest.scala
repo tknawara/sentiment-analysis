@@ -7,12 +7,11 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 object ClassifierTest {
   def main(args: Array[String]): Unit = {
-
     val conf = new SparkConf().setMaster("local[*]").setAppName("Twitter")
     val sc = new SparkContext(conf)
     val ssc = new StreamingContext(sc, Seconds(10))
 
-    val modelService = new ModelService(new GradientBoostingBuilder(sc))
+    val modelService = new ModelService(List(new GradientBoostingBuilder(sc)))
     modelService.start()
 
     val classifier = new Classifier(ssc)

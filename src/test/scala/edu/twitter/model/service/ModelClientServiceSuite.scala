@@ -10,7 +10,7 @@ class ModelClientServiceSuite extends FunSuite with BeforeAndAfterAll {
   @transient private var modelService: ModelService = _
 
   override def beforeAll(): Unit = {
-    modelService = new ModelService(new TestGenericModelBuilder())
+    modelService = new ModelService(List(new TestGenericModelBuilder()))
     modelService.start()
   }
 

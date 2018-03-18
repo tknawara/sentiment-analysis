@@ -24,18 +24,23 @@ case class TweetLabel(label: Double)
 /**
   * Exposes a Rest API for accessing the model.
   *
-  * @param genericModelBuilder instance holding the recipe for building
-  *                            the model.
+  * @param builders Seq holding the recipe for building
+  *                 the models.
   */
-class ModelService(genericModelBuilder: GenericModelBuilder) {
+class ModelService(builders: Seq[GenericModelBuilder]) {
+  require(builders.nonEmpty)
+
   private var bindingFuture: Future[ServerBinding] = _
+
+  implicit val system: ActorSystem = ActorSystem("twitter-actor-system")
+  implicit val materializer: ActorMaterializer = ActorMaterializer()
+  implicit val executionContext: ExecutionContextExecutor = system.dispatcher
+
   implicit val tweetLabelFormat: RootJsonFormat[TweetLabel] = jsonFormat1(TweetLabel)
 
-  import ModelService._
-
   def start(): Unit = {
-    val model = genericModelBuilder.build()
-    val route: Route =
+    val models = builders.map(_.build())
+    val routes = for (model <- models) yield {
       path(s"${model.name}" / "classify") {
         get {
           parameters('tweet.as[String]) { tweet =>
@@ -44,17 +49,13 @@ class ModelService(genericModelBuilder: GenericModelBuilder) {
           }
         }
       }
+    }
 
+    val route = routes.reduce(_ ~ _)
     bindingFuture = Http().bindAndHandle(route, "localhost", 8080)
   }
 
   def stop(): Unit = {
-    if (bindingFuture != null) bindingFuture.flatMap(_.unbind())
+    if (bindingFuture != null) bindingFuture.flatMap(_.unbind()).onComplete(_ => system.terminate())
   }
-}
-
-object ModelService {
-  implicit val system: ActorSystem = ActorSystem("twitter-actor-system")
-  implicit val materializer: ActorMaterializer = ActorMaterializer()
-  implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 }
