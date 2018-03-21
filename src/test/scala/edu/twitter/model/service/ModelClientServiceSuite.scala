@@ -2,6 +2,7 @@ package edu.twitter.model.service
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import edu.twitter.model.Label
 import edu.twitter.model.client.ModelClient
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
@@ -23,6 +24,6 @@ class ModelClientServiceSuite extends FunSuite {
     val tweet = "hello"
     val resp = ModelClient.callModelService(modeName, tweet)
 
-    assert(resp.get().getLabel == 0)
+    assert(resp.get() == Label.HAPPY)
   }
 }

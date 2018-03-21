@@ -5,20 +5,15 @@ import java.util.Base64
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
+import com.fasterxml.jackson.databind.ObjectMapper
 import edu.twitter.model.api.GenericModelBuilder
-import spray.json.DefaultJsonProtocol._
-import spray.json.RootJsonFormat
 
 import scala.concurrent.ExecutionContext
 
-/** Representation of the model's response.
-  * This case class will be converted to Json and
-  * returned as a response. */
-case class TweetLabel(label: Double)
+
 
 /**
   * Exposes a Rest API for accessing the model.
@@ -31,7 +26,6 @@ class ModelService(genericModelBuilder: GenericModelBuilder)
                    implicit val system: ActorSystem,
                    implicit val materializer: Materializer) {
 
-  implicit val tweetLabelFormat: RootJsonFormat[TweetLabel] = jsonFormat1(TweetLabel)
 
   def start(): Unit = {
     val model = genericModelBuilder.build()
@@ -40,7 +34,8 @@ class ModelService(genericModelBuilder: GenericModelBuilder)
         get {
           parameters('tweet.as[String]) { tweet =>
             val decodedTweet = new String(Base64.getUrlDecoder.decode(tweet), Charset.forName("UTF-16"))
-            complete(TweetLabel(model.getLabel(decodedTweet)))
+            val label = model.getLabel(decodedTweet)
+            complete(ModelService.objectMapper.writeValueAsString(label))
           }
         }
       }
@@ -48,4 +43,8 @@ class ModelService(genericModelBuilder: GenericModelBuilder)
     Http().bindAndHandle(route, "localhost", 8080)
   }
 
+}
+
+object ModelService {
+  val objectMapper = new ObjectMapper()
 }

@@ -9,7 +9,7 @@ import org.apache.spark.streaming.dstream.DStream
 
 /** Representation of the classified tweet, we may add
   * more fields to it later. */
-case class ClassifiedTweet(label: Double, tweetText: String, date: String, location: String)
+case class ClassifiedTweet(label: Double, tweetText: String, date: String, location: String, modelName: String)
 
 /** Responsible for building `TweeterStream` and the `Classification Model`
   * and classifying the stream with the model.
@@ -36,10 +36,10 @@ class Classifier(ssc: StreamingContext) {
       resOption = ModelClient.callModelService(modelName, tweet.getText)
       if resOption.isPresent
       res = resOption.get
-      label = if (res.getLabel == 0) -1 else 1
+      label = res.getKibanaRepresentation
       date = dateFormat.format(tweet.getCreatedAt)
       location = if (tweet.getGeoLocation != null) s"${tweet.getGeoLocation.getLatitude},${tweet.getGeoLocation.getLongitude}" else null
-    } yield ClassifiedTweet(label, tweet.getText, date, location)
+    } yield ClassifiedTweet(label, tweet.getText, date, location, modelName)
 
     classifiedStream
   }
