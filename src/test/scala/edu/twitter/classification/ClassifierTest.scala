@@ -1,25 +1,17 @@
 package edu.twitter.classification
 
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import edu.twitter.model.impl.gradientboosting.{GradientBoostingBuilder, GradientBoostingModel}
 import edu.twitter.model.service.ModelService
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext}
 
-import scala.concurrent.ExecutionContextExecutor
-
 object ClassifierTest {
   def main(args: Array[String]): Unit = {
-    implicit val system: ActorSystem = ActorSystem("twitter-actor-system")
-    implicit val materializer: ActorMaterializer = ActorMaterializer()
-    implicit val executionContext: ExecutionContextExecutor = system.dispatcher
-
     val conf = new SparkConf().setMaster("local[*]").setAppName("Twitter")
     val sc = new SparkContext(conf)
     val ssc = new StreamingContext(sc, Seconds(10))
 
-    val modelService = new ModelService(new GradientBoostingBuilder(sc))
+    val modelService = new ModelService(List(new GradientBoostingBuilder(sc)))
     modelService.start()
 
     val classifier = new Classifier(ssc)
@@ -33,6 +25,5 @@ object ClassifierTest {
     if (sc != null) {
       sc.stop()
     }
-
   }
 }
