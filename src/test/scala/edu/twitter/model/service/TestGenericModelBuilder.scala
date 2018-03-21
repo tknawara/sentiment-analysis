@@ -1,8 +1,9 @@
 package edu.twitter.model.service
 
+import edu.twitter.model.Label
 import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
 
-class TestGenericModelBuilder(val fixedLabel: Double, val modelName: String) extends GenericModelBuilder {
+class TestGenericModelBuilder(val fixedLabel: Label, val modelName: String) extends GenericModelBuilder {
   /**
     * Run the recipe responsible for constructing the model.
     *

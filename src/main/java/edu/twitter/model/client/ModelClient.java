@@ -1,6 +1,7 @@
 package edu.twitter.model.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.twitter.model.Label;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -39,12 +40,12 @@ public final class ModelClient {
      *
      * @param modelName name of the target model.
      * @param tweet     tweet's text
-     * @return optional of `ModelServiceResponse`
+     * @return optional of `Label`
      */
-    public static Optional<ModelServiceResponse> callModelService(final String modelName, final String tweet) {
+    public static Optional<Label> callModelService(final String modelName, final String tweet) {
         final String encodedTweet = new String(Base64.getUrlEncoder().encode(tweet.getBytes(StandardCharsets.UTF_16)));
         final String url = String.format(API_URL_TEMPLATE, modelName, encodedTweet);
-        return executeRequest(url, ModelServiceResponse.class);
+        return executeRequest(url, Label.class);
     }
 
     /**

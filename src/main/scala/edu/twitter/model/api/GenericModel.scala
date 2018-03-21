@@ -1,9 +1,12 @@
 package edu.twitter.model.api
 
+import edu.twitter.model.Label
+
 /**
   * A generic interface for sentiment analysis model.
   */
 trait GenericModel {
+
 
   def name: String
 
@@ -13,5 +16,7 @@ trait GenericModel {
     * @param tweetText target tweet message for classification.
     * @return 0 for sad & 1 for happy
     */
-  def getLabel(tweetText: String): Double
+  def getLabel(tweetText: String): Label
+
+
 }

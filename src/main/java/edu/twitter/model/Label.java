@@ -1,12 +1,16 @@
-package edu.twitter.model.client;
+package edu.twitter.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Representation of the model service's response.
  */
-public class ModelServiceResponse {
+public enum Label {
+    @JsonProperty
+    HAPPY(1.0),
+    @JsonProperty
+    SAD(-1.0);
+
     private final double label;
 
     /**
@@ -14,12 +18,12 @@ public class ModelServiceResponse {
      *
      * @param label classification label of the tweet.
      */
-    @JsonCreator
-    public ModelServiceResponse(@JsonProperty("label") final double label) {
+    Label(final double label) {
         this.label = label;
     }
 
-    public double getLabel() {
+    public double getKibanaRepresentation() {
         return label;
     }
+
 }

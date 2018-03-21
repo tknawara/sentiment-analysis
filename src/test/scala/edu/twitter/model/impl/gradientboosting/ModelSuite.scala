@@ -3,10 +3,11 @@ package edu.twitter.model.impl.gradientboosting
 import org.apache.spark.{SparkConf, SparkContext}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{BeforeAndAfterAll, FunSuite}
+import org.scalatest.{BeforeAndAfterAll, FunSuite, Ignore}
 
 import scala.util.Try
 
+@Ignore
 @RunWith(classOf[JUnitRunner])
 class ModelSuite extends FunSuite with BeforeAndAfterAll {
   @transient private var sc: SparkContext = _

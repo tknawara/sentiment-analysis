@@ -94,7 +94,7 @@ class ModelEvaluator(sc: SparkContext) {
       resOption = ModelClient.callModelService(modelName, r.tweetText)
       if resOption.isPresent
       res = resOption.get()
-      modelPrediction = res.getLabel
+      modelPrediction = res.getKibanaRepresentation
     } yield EvaluatedTrainingTweet(r.actualLabel, modelPrediction, r.tweetText)
 
     evaluation

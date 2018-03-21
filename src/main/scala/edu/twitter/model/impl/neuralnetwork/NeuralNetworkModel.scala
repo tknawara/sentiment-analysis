@@ -1,5 +1,6 @@
 package edu.twitter.model.impl.neuralnetwork
 
+import edu.twitter.model.Label
 import edu.twitter.model.api.GenericModel
 import edu.twitter.model.impl.TweetTextFilter
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors
@@ -28,7 +29,8 @@ class NeuralNetworkModel(model: MultiLayerNetwork,
     * @param tweetText target tweet message for classification.
     * @return 0 for sad & 1 for happy
     */
-  override def getLabel(tweetText: String): Double = {
+
+  override def getLabel(tweetText: String): Label = {
     val filteredTweet = TweetTextFilter.filterTweet(tweetText)
     val features = loadFeaturesFromString(filteredTweet)
     val networkOutput = model.output(features)
@@ -36,7 +38,7 @@ class NeuralNetworkModel(model: MultiLayerNetwork,
     val probabilities = networkOutput.get(NDArrayIndex.point(0), NDArrayIndex.all, NDArrayIndex.point(timeSeriesLength - 1))
     val happy = probabilities.getDouble(0)
     val sad = probabilities.getDouble(1)
-    if (happy > sad) 1.0 else 0.0
+    if (happy > sad) Label.HAPPY else Label.SAD
   }
 
   /**
