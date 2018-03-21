@@ -43,11 +43,13 @@ class IndexHandler {
           logger.info(s"index with name $indexName already exists")
           Right(s"$indexName/$mappingName")
         } else {
-          logger.error("failed to create index, reason: ", failure)
+          logger.error("failed to create index, reason: " + failure)
           Left(failure)
         }
 
-      case Right(success) => Right(s"$indexName/$mappingName")
+      case Right(_) =>
+        logger.info(s"index created successfully with name $indexName/$mappingName")
+        Right(s"$indexName/$mappingName")
     }
 
   }

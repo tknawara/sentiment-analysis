@@ -25,35 +25,37 @@ object SentimentAnalyzer extends App {
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
-  val conf = new SparkConf().setMaster("local[*]").setAppName("Twitter")
-  conf.set("es.index.auto.create", "true")
-  val sc = new SparkContext(conf)
-  val ssc = new StreamingContext(sc, Seconds(10))
-
-  val modelService = new ModelService(new GradientBoostingBuilder(sc))
-  modelService.start()
 
   val indexHandler = new IndexHandler
-  val result = indexHandler.create("twitter", "sentiment")
+  val indexCreationResult = indexHandler.create("twitter", "sentiment")
 
-  var indexName = ""
 
-  result match {
-    case Left(failure) => terminate()
-    case Right(name) => indexName = name
+  indexCreationResult match {
+    case Left(_) => System.exit(0)
+    case Right(indexName) => runSentimentAnalyzer(indexName)
   }
 
-  val classifier = new Classifier(ssc)
-  val classifiedStream = classifier.createClassifiedStream(GradientBoostingModel.name)
-  classifiedStream.foreachRDD(EsSpark.saveToEs(_, indexName))
 
-  ssc.start()
-  ssc.awaitTermination()
-  terminate()
+  private def runSentimentAnalyzer(indexName: String): Unit = {
+    val conf = new SparkConf().setMaster("local[*]").setAppName("Twitter")
+    conf.set("es.index.auto.create", "true")
+    val sc = new SparkContext(conf)
+    val ssc = new StreamingContext(sc, Seconds(10))
 
-  private def terminate(): Unit = {
-    ssc.stop(true)
+    val modelService = new ModelService(new GradientBoostingBuilder(sc))
+    modelService.start()
+
+
+    val classifier = new Classifier(ssc)
+    val classifiedStream = classifier.createClassifiedStream(GradientBoostingModel.name)
+    classifiedStream.foreachRDD(EsSpark.saveToEs(_, indexName))
+
+    ssc.start()
+    ssc.awaitTermination()
+
+    if (ssc != null) ssc.stop(true)
     if (sc != null) sc.stop()
+
   }
 
 }
