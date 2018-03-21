@@ -1,6 +1,7 @@
 package edu.twitter.model.impl.neuralnetwork
 
 import edu.twitter.model.api.GenericModel
+import edu.twitter.model.impl.TweetTextFilter
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
 import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.CommonPreprocessor
@@ -28,7 +29,8 @@ class NeuralNetworkModel(model: MultiLayerNetwork,
     * @return 0 for sad & 1 for happy
     */
   override def getLabel(tweetText: String): Double = {
-    val features = loadFeaturesFromString(tweetText)
+    val filteredTweet = TweetTextFilter.filterTweet(tweetText)
+    val features = loadFeaturesFromString(filteredTweet)
     val networkOutput = model.output(features)
     val timeSeriesLength = networkOutput.size(2)
     val probabilities = networkOutput.get(NDArrayIndex.point(0), NDArrayIndex.all, NDArrayIndex.point(timeSeriesLength - 1))

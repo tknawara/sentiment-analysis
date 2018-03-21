@@ -19,6 +19,7 @@ case class ClassifiedTweet(label: Double, tweetText: String, date: String)
   *            stream creation
   */
 class Classifier(ssc: StreamingContext) {
+  private lazy val tweets = new TwitterStream(ssc).createStream()
 
   /**
     * Build the `Classification Model` and a `TweeterStream`
@@ -28,7 +29,6 @@ class Classifier(ssc: StreamingContext) {
     * @return stream of `ClassifiedTweets`
     */
   def createClassifiedStream(modelName: String): DStream[ClassifiedTweet] = {
-    val tweets = new TwitterStream(ssc).createStream()
     val supportedLangIso = Set("en", "eng")
     val dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
     val classifiedStream = for {
