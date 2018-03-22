@@ -48,6 +48,9 @@ dependencies {
     compile group: 'ch.qos.logback', name: 'logback-core', version: '1.2.3'
     compile 'com.sksamuel.elastic4s:elastic4s-core_2.11:6.1.4'
     compile 'com.sksamuel.elastic4s:elastic4s-http_2.11:6.1.4'
+    compile group: 'edu.stanford.nlp', name: 'stanford-corenlp', version: '3.9.1'
+    compile group: 'edu.stanford.nlp', name: 'stanford-corenlp', version: '3.9.1', classifier: 'models'
+    compile group: 'edu.stanford.nlp', name: 'stanford-parser', version: '3.9.1'
 
     testCompile group: 'org.scalatest', name: 'scalatest_2.11', version: '3.0.5'
     testCompile group: 'org.spockframework', name: 'spock-core', version: '1.1-groovy-2.4'
