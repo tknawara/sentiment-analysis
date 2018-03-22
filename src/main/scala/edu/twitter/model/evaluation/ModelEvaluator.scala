@@ -1,6 +1,7 @@
 package edu.twitter.model.evaluation
 
 import com.typesafe.scalalogging.Logger
+import edu.twitter.model.Label
 import edu.twitter.model.client.ModelClient
 import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
@@ -10,7 +11,7 @@ import org.elasticsearch.spark.rdd.EsSpark
 
 /** Representation of the records used for training
   * and testing the model. */
-case class Record(tweetText: String, actualLabel: Double)
+case class Record(tweetText: String, actualLabel: Label)
 
 /** Grouping of the evaluation necessary fields
   * these fields are used for evaluating the training error. */
@@ -34,7 +35,7 @@ case class EvaluationFields(happyCorrect: Int, happyTotal: Int, sadCorrect: Int,
 
 /** Representation of a training tweet that has been classified
   * by the model, it holds both the actual and model labels. */
-case class EvaluatedTrainingTweet(actualLabel: Double, modelPrediction: Double, tweetText: String)
+case class EvaluatedTrainingTweet(actualLabel: Label, modelPrediction: Label, tweetText: String)
 
 /** Responsible for evaluating a model based on a given
   * testing data. this class will print training analysis
@@ -44,8 +45,8 @@ case class EvaluatedTrainingTweet(actualLabel: Double, modelPrediction: Double, 
   * @param sc spark context.
   */
 class ModelEvaluator(sc: SparkContext) {
-
   private val logger = Logger(classOf[ModelEvaluator])
+  private val labelMapping = Map(0.0 -> Label.SAD, 1.0 -> Label.HAPPY)
 
   /**
     * Show how the model will perform against a
@@ -60,7 +61,7 @@ class ModelEvaluator(sc: SparkContext) {
     val evaluation = evaluateData(modelName, tweetsLoader.loadDataSet(path))
     performEvaluationAnalysis(evaluation)
     if (persist) {
-      EsSpark.saveToEs(evaluation, s"$modelName/performance-analysis")
+      EsSpark.saveToEs(evaluation, s"${modelName.toLowerCase}/performance")
     }
   }
 
@@ -74,7 +75,7 @@ class ModelEvaluator(sc: SparkContext) {
   private def evaluateData(modelName: String, data: RDD[Row]): RDD[EvaluatedTrainingTweet] = {
     val transformedData = for {
       row <- data
-      actualLabel = row.getAs[Double]("label")
+      actualLabel = labelMapping(row.getAs[Double]("label"))
       tweetText = row.getAs[String]("msg")
     } yield Record(tweetText, actualLabel)
 
@@ -93,8 +94,7 @@ class ModelEvaluator(sc: SparkContext) {
       r <- data
       resOption = ModelClient.callModelService(modelName, r.tweetText)
       if resOption.isPresent
-      res = resOption.get()
-      modelPrediction = res.getKibanaRepresentation
+      modelPrediction = resOption.get()
     } yield EvaluatedTrainingTweet(r.actualLabel, modelPrediction, r.tweetText)
 
     evaluation
@@ -108,10 +108,10 @@ class ModelEvaluator(sc: SparkContext) {
   private def performEvaluationAnalysis(evaluation: RDD[EvaluatedTrainingTweet], dataSetType: String = "Testing"): Unit = {
     val e = evaluation.aggregate(EvaluationFields(0, 0, 0, 0))(
       (e, t) => (t.actualLabel, t.modelPrediction) match {
-        case (1, 1) => e.copy(happyCorrect = e.happyCorrect + 1, happyTotal = e.happyTotal + 1)
-        case (1, 0) => e.copy(happyTotal = e.happyTotal + 1)
-        case (0, 1) => e.copy(sadTotal = e.sadTotal + 1)
-        case (0, 0) => e.copy(sadCorrect = e.sadCorrect + 1, sadTotal = e.sadTotal + 1)
+        case (Label.HAPPY, Label.HAPPY) => e.copy(happyCorrect = e.happyCorrect + 1, happyTotal = e.happyTotal + 1)
+        case (Label.HAPPY, Label.SAD) => e.copy(happyTotal = e.happyTotal + 1)
+        case (Label.SAD, Label.HAPPY) => e.copy(sadTotal = e.sadTotal + 1)
+        case (Label.SAD, Label.SAD) => e.copy(sadCorrect = e.sadCorrect + 1, sadTotal = e.sadTotal + 1)
       },
       (e1, e2) => e1 + e2
     )
