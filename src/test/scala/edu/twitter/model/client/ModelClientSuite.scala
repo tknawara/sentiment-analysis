@@ -1,9 +1,8 @@
-package edu.twitter.model
+package edu.twitter.model.client
 
 import java.nio.charset.Charset
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import edu.twitter.model.client.ModelRequestBody
 import org.apache.commons.io.IOUtils
 import org.apache.http.entity.StringEntity
 import org.junit.runner.RunWith

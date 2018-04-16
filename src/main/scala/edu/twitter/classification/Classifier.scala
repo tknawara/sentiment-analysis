@@ -32,8 +32,11 @@ class Classifier(ssc: StreamingContext) {
     val classifiedStream = for {
       tweet <- tweets
       if supportedLangIso(tweet.getLang)
-      modelName <- models
-      callRes <- ModelClient.callModelService(modelName, tweet.getText)
+      responses = models.map(name => (name, ModelClient.callModelService(name, tweet.getText)))
+      allExist = responses.forall { case (_, r) => r.nonEmpty }
+      if allExist
+      (modelName, modelResp) <- responses
+      callRes <- modelResp
       label = callRes.getKibanaRepresentation
       date = dateFormat.format(tweet.getCreatedAt)
       geo = tweet.getGeoLocation
@@ -42,6 +45,5 @@ class Classifier(ssc: StreamingContext) {
 
     classifiedStream
   }
-
 
 }
