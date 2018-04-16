@@ -16,7 +16,7 @@ public class ModelRequestBody {
      * @param tweetMsg tweet message to send.
      */
     @JsonCreator
-    ModelRequestBody(@JsonProperty("tweetMsg") final String tweetMsg) {
+    public ModelRequestBody(@JsonProperty("tweetMsg") final String tweetMsg) {
         this.tweetMsg = tweetMsg;
     }
 
