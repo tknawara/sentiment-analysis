@@ -55,5 +55,4 @@ class ModelService(builders: Seq[GenericModelBuilder]) {
 
 object ModelService {
   val objectMapper = new ObjectMapper()
-
 }

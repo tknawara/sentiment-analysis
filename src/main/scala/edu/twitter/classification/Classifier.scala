@@ -18,27 +18,26 @@ case class ClassifiedTweet(label: Double, tweetText: String, date: String, locat
   *            stream creation
   */
 class Classifier(ssc: StreamingContext) {
-  private lazy val tweets = new TwitterStream(ssc).createStream()
-
   /**
     * Build the `Classification Model` and a `TweeterStream`
     * and return a stream of `ClassifiedTweets`.
     *
-    * @param modelName name of target model.
+    * @param models seq of model names.
     * @return stream of `ClassifiedTweets`
     */
-  def createClassifiedStream(modelName: String): DStream[ClassifiedTweet] = {
+  def createClassifiedStream(models: Seq[String]): DStream[ClassifiedTweet] = {
+    val tweets = new TwitterStream(ssc).createStream()
     val supportedLangIso = Set("en", "eng")
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
     val classifiedStream = for {
       tweet <- tweets
       if supportedLangIso(tweet.getLang)
-      resOption = ModelClient.callModelService(modelName, tweet.getText)
-      if resOption.isPresent
-      res = resOption.get
-      label = res.getKibanaRepresentation
+      modelName <- models
+      callRes <- ModelClient.callModelService(modelName, tweet.getText)
+      label = callRes.getKibanaRepresentation
       date = dateFormat.format(tweet.getCreatedAt)
-      location = if (tweet.getGeoLocation != null) s"${tweet.getGeoLocation.getLatitude},${tweet.getGeoLocation.getLongitude}" else null
+      geo = tweet.getGeoLocation
+      location = if (geo != null) s"${geo.getLatitude},${geo.getLongitude}" else null
     } yield ClassifiedTweet(label, tweet.getText, date, location, modelName)
 
     classifiedStream

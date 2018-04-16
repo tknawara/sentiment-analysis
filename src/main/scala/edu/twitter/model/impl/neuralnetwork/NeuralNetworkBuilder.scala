@@ -46,7 +46,7 @@ class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
     }
 
     val batchSize = 256 //Number of examples in each minibatch
-    val nEpochs = 1 //Number of epochs (full passes of training data) to train on
+    val nEpochs = 10 //Number of epochs (full passes of training data) to train on
     val truncateReviewsToLength = 280 //Truncate reviews with length (# words) greater than this
 
     //DataSetIterators for training and testing respectively
@@ -85,7 +85,7 @@ class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
       .weightInit(WeightInit.XAVIER)
       .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue)
       .gradientNormalizationThreshold(1.0)
-      .learningRate(0.02)
+      .learningRate(0.2)
       .list
       .layer(0, new GravesLSTM.Builder().nIn(vectorSize).nOut(256)
         .activation(Activation.TANH)

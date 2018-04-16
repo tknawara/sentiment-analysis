@@ -15,7 +15,7 @@ object ClassifierTest {
     modelService.start()
 
     val classifier = new Classifier(ssc)
-    val classifiedStream = classifier.createClassifiedStream(GradientBoostingModel.name)
+    val classifiedStream = classifier.createClassifiedStream(List(GradientBoostingModel.name))
     classifiedStream.foreachRDD(rdd => rdd.take(10).foreach(println(_)))
 
     ssc.start()

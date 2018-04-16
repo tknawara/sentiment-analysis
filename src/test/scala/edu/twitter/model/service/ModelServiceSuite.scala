@@ -20,15 +20,15 @@ class ModelServiceSuite extends FunSuite with BeforeAndAfterAll {
 
   test("the model client's result should match the model's response") {
     val resp = ModelClient.callModelService(builderOne.modelName, "hello")
-    assert(resp.get() == builderOne.fixedLabel)
+    assert(resp.get == builderOne.fixedLabel)
   }
 
   test("Model service can support multiple models") {
     val tweet = "hello"
     val modelOneClassification = ModelClient.callModelService(builderOne.modelName, tweet)
     val modelTwoClassification = ModelClient.callModelService(builderTwo.modelName, tweet)
-    assert(modelOneClassification.get() == builderOne.fixedLabel)
-    assert(modelTwoClassification.get() == builderTwo.fixedLabel)
+    assert(modelOneClassification.get == builderOne.fixedLabel)
+    assert(modelTwoClassification.get == builderTwo.fixedLabel)
   }
 
   override def afterAll(): Unit = {

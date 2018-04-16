@@ -10,12 +10,12 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Option;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Optional;
 
 /**
  * Class Responsible for communicating
@@ -42,7 +42,7 @@ public final class ModelClient {
      * @param tweet     tweet's text
      * @return optional of `Label`
      */
-    public static Optional<Label> callModelService(final String modelName, final String tweet) {
+    public static Option<Label> callModelService(final String modelName, final String tweet) {
         final String encodedTweet = new String(Base64.getUrlEncoder().encode(tweet.getBytes(StandardCharsets.UTF_16)));
         final String url = String.format(API_URL_TEMPLATE, modelName, encodedTweet);
         return executeRequest(url, Label.class);
@@ -57,17 +57,17 @@ public final class ModelClient {
      * @param <T>       return type
      * @return optional of {@code T}
      */
-    private static <T> Optional<T> executeRequest(final String url, final Class<T> valueType) {
+    private static <T> Option<T> executeRequest(final String url, final Class<T> valueType) {
         try {
             final HttpGet httpGet = new HttpGet(url);
             final CloseableHttpResponse response = HTTP_CLIENT.execute(httpGet);
             final HttpEntity entity = response.getEntity();
             final T modelServiceResponse =
                     MAPPER.readValue(IOUtils.toString(entity.getContent(), Charset.defaultCharset()), valueType);
-            return Optional.of(modelServiceResponse);
+            return Option.apply(modelServiceResponse);
         } catch (final IOException e) {
             LOGGER.warn("Error in calling the model service: {}", e);
-            return Optional.empty();
+            return Option.empty();
         }
     }
 }
