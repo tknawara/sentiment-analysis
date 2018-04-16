@@ -29,7 +29,7 @@ class ModelService(builders: Seq[GenericModelBuilder]) {
 
 
   def start(): Unit = {
-    val models = builders.map(_.build())
+    val models = builders.par.map(_.build())
     val routes = for (model <- models) yield {
       path(s"${model.name}" / "classify") {
         get {
