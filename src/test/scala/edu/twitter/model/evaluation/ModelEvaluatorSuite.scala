@@ -1,5 +1,6 @@
 package edu.twitter.model.evaluation
 
+import edu.twitter.config.{AppConfig, DevConfig}
 import edu.twitter.model.impl.gradientboosting.{GradientBoostingBuilder, GradientBoostingModel}
 import edu.twitter.model.service.ModelService
 import org.apache.spark.{SparkConf, SparkContext}
@@ -14,6 +15,7 @@ import scala.util.Try
 class ModelEvaluatorSuite extends FunSuite with BeforeAndAfterAll {
   @transient private var sc: SparkContext = _
   @transient private var modelService: ModelService = _
+  implicit val appConfig: AppConfig = DevConfig
 
   override def beforeAll(): Unit = {
     val conf = new SparkConf().setMaster("local[*]").setAppName("ModelEvaluatorTest")
