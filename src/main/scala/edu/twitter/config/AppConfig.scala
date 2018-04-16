@@ -37,10 +37,11 @@ sealed trait AppConfig {
 /** Holder for all paths used in the
   * Application. */
 object DataPaths {
-  val savedNeuralNetworkModelPath: String = getAbsolutePath("saved-models") + File.separator + "NeuralNetworkModel.net"
-  val savedGradientBoostingModelPath: String = getAbsolutePath("saved-models") + File.separator + "GradientBoosting"
-  val newsModelPath: String = getAbsolutePath("NewsModel.txt")
-  val googleNewsPath: String = getAbsolutePath("GoogleNews-vectors-negative300.bin.gz")
+  lazy val savedNeuralNetworkModelPath: String = getAbsolutePath("saved-models") + File.separator + "NeuralNetworkModel.net"
+  lazy val savedGradientBoostingModelPath: String = getAbsolutePath("saved-models") + File.separator + "GradientBoosting"
+  lazy val newsModelPath: String = getAbsolutePath("NewsModel.txt")
+  lazy val googleNewsPath: String = getAbsolutePath("GoogleNews-vectors-negative300.bin.gz")
+
   val trainingDataPath: String = getAbsolutePath("labeled-tweets")
   val validationDataPath: String = getAbsolutePath("labeled-tweets")
 
