@@ -28,7 +28,7 @@ class ModelEvaluatorSuite extends FunSuite with BeforeAndAfterAll {
   test("model evaluator smoke test") {
     val dataPath = this.getClass.getClassLoader.getResource("labeled-tweets").getPath
     val modelEvaluator = new ModelEvaluator(sc)
-    assert(Try(modelEvaluator.evaluate(GradientBoostingModel.name, dataPath)).isSuccess)
+    assert(Try(modelEvaluator.evaluate(GradientBoostingModel.name)).isSuccess)
   }
 
   override def afterAll(): Unit = {
