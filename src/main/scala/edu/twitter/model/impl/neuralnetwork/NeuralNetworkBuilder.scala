@@ -52,7 +52,7 @@ class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
     //DataSetIterators for training and testing respectively
     val dataPath = this.getClass.getClassLoader.getResource("labeled-tweets").getPath
     val data = new TweetsLoader(sc).loadDataSet(dataPath)
-    val Array(trainData, testData) = data.randomSplit(Array(0.7, 0.3))
+    val Array(trainData, testData) = data.randomSplit(Array(0.85, 0.15))
     val train = new DataIterator(trainData, wordVectors, batchSize, truncateReviewsToLength)
     val test = new DataIterator(testData, wordVectors, batchSize, truncateReviewsToLength)
 
