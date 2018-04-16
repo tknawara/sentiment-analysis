@@ -5,6 +5,7 @@ import java.io.File
 import com.typesafe.scalalogging.Logger
 import edu.twitter.config.AppConfig
 import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
+import edu.twitter.model.evaluation.ModelEvaluator
 import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
 import org.apache.spark.mllib.evaluation.MulticlassMetrics
@@ -52,6 +53,10 @@ class GradientBoostingBuilder(sc: SparkContext)(implicit appConfig: AppConfig) e
     evaluate(model, trainingSet, "Training")
     evaluate(model, testSet, "Testing")
     model.save(sc, appConfig.paths.savedGradientBoostingModelPath)
+    if (appConfig.evaluateModels) {
+      new ModelEvaluator(sc).evaluate(GradientBoostingModel.name)
+    }
+
     new GradientBoostingModel(model)
   }
 

@@ -5,6 +5,7 @@ import java.io._
 import com.typesafe.scalalogging.Logger
 import edu.twitter.config.AppConfig
 import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
+import edu.twitter.model.evaluation.ModelEvaluator
 import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
 import org.deeplearning4j.eval.Evaluation
@@ -75,6 +76,10 @@ class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) exte
     }
 
     ModelSerializer.writeModel(net, modelPath, true)
+    if (appConfig.evaluateModels) {
+      new ModelEvaluator(sc).evaluate(NeuralNetworkModel.name)
+    }
+
     new NeuralNetworkModel(net, wordVectors)
   }
 

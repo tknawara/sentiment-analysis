@@ -1,6 +1,7 @@
 package edu.twitter.model.evaluation
 
 import com.typesafe.scalalogging.Logger
+import edu.twitter.config.AppConfig
 import edu.twitter.model.Label
 import edu.twitter.model.client.ModelClient
 import edu.twitter.model.impl.TweetsLoader
@@ -44,7 +45,7 @@ case class EvaluatedTrainingTweet(actualLabel: Label, modelPrediction: Label, tw
   *
   * @param sc spark context.
   */
-class ModelEvaluator(sc: SparkContext) {
+class ModelEvaluator(sc: SparkContext)(implicit appConfig: AppConfig) {
   private val logger = Logger(classOf[ModelEvaluator])
   private val labelMapping = Map(0.0 -> Label.SAD, 1.0 -> Label.HAPPY)
 
@@ -53,14 +54,12 @@ class ModelEvaluator(sc: SparkContext) {
     * prelabeled data.
     *
     * @param modelName name of the target model for evaluation.
-    * @param path      path of the testing data.
-    * @param persist   if true results will be saved to `Elasticsearch`
     */
-  def evaluate(modelName: String, path: String, persist: Boolean = false): Unit = {
+  def evaluate(modelName: String): Unit = {
     val tweetsLoader = new TweetsLoader(sc)
-    val evaluation = evaluateData(modelName, tweetsLoader.loadDataSet(path))
+    val evaluation = evaluateData(modelName, tweetsLoader.loadDataSet(appConfig.paths.validationDataPath))
     performEvaluationAnalysis(evaluation)
-    if (persist) {
+    if (appConfig.persistEvaluation) {
       EsSpark.saveToEs(evaluation, s"${modelName.toLowerCase}/performance")
     }
   }

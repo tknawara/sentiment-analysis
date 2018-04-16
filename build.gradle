@@ -15,7 +15,7 @@ run {
     // possible values: 'dev', 'prod'
     args = ['dev']
     if (args[0] == 'prod') {
-        applicationDefaultJvmArgs += '-Xms5g'
+        applicationDefaultJvmArgs = ['-Xms5g']
     }
 }
 
