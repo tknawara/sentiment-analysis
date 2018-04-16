@@ -12,8 +12,7 @@ apply plugin: 'jacoco'
 sourceCompatibility = 1.8
 
 run {
-    // possible values: 'dev', 'prod'
-    args = ['dev']
+    args = ['dev']  // possible values: 'dev', 'prod'
     if (args[0] == 'prod') {
         applicationDefaultJvmArgs = ['-Xms5g']
     }

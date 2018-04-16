@@ -20,6 +20,7 @@ import org.apache.spark.rdd.RDD
   */
 class GradientBoostingBuilder(sc: SparkContext)(implicit appConfig: AppConfig) extends GenericModelBuilder {
   private val logger = Logger(classOf[GradientBoostingModel])
+  private val modelPath = appConfig.paths.savedGradientBoostingModelPath
 
   /**
     * Build a GradientBoosting Classification model using a Gradient Boosting model
@@ -37,7 +38,7 @@ class GradientBoostingBuilder(sc: SparkContext)(implicit appConfig: AppConfig) e
   def build(): GenericModel = {
     if (checkModelExist()) {
       logger.info("The model is already trained, load it directly")
-      return new GradientBoostingModel(GradientBoostedTreesModel.load(sc, appConfig.paths.savedGradientBoostingModelPath))
+      return new GradientBoostingModel(GradientBoostedTreesModel.load(sc, modelPath))
     }
 
     val tweetsLoader = new TweetsLoader(sc)
@@ -52,7 +53,7 @@ class GradientBoostingBuilder(sc: SparkContext)(implicit appConfig: AppConfig) e
     val model = GradientBoostedTrees.train(trainingSet, boostingStrategy)
     evaluate(model, trainingSet, "Training")
     evaluate(model, testSet, "Testing")
-    model.save(sc, appConfig.paths.savedGradientBoostingModelPath)
+    model.save(sc, modelPath)
     if (appConfig.evaluateModels) {
       new ModelEvaluator(sc).evaluate(GradientBoostingModel.name)
     }
@@ -89,7 +90,7 @@ class GradientBoostingBuilder(sc: SparkContext)(implicit appConfig: AppConfig) e
   }
 
   private def checkModelExist(): Boolean = {
-    val file = new File(appConfig.paths.savedGradientBoostingModelPath)
+    val file = new File(modelPath)
     file.exists()
   }
 }
