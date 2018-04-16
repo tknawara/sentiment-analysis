@@ -23,4 +23,11 @@ public class ModelRequestBody {
     public String getTweetMsg() {
         return tweetMsg;
     }
+
+    @Override
+    public String toString() {
+        return "ModelRequestBody{" +
+                "tweetMsg='" + tweetMsg + '\'' +
+                '}';
+    }
 }
