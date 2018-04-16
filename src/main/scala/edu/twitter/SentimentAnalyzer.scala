@@ -1,6 +1,7 @@
 package edu.twitter
 
 import edu.twitter.classification.Classifier
+import edu.twitter.config.{AppConfig, DevConfig, ProdConfig}
 import edu.twitter.model.impl.gradientboosting.{GradientBoostingBuilder, GradientBoostingModel}
 import edu.twitter.model.service.ModelService
 import org.apache.spark.streaming.{Seconds, StreamingContext}
@@ -17,19 +18,20 @@ import edu.twitter.model.impl.neuralnetwork.{NeuralNetworkBuilder, NeuralNetwork
   * `kibana` to visualize the sentiment results.
   *
   */
-object SentimentAnalyzer extends App {
+object SentimentAnalyzer {
+  def main(args: Array[String]): Unit = {
+    implicit val appConfig: AppConfig = if (args.head == "dev") DevConfig else ProdConfig
 
+    val indexHandler = new IndexHandler
+    val indexCreationResult = indexHandler.create("twitter", "sentiment")
 
-  val indexHandler = new IndexHandler
-  val indexCreationResult = indexHandler.create("twitter", "sentiment")
-
-  indexCreationResult match {
-    case Left(_) => System.exit(0)
-    case Right(indexName) => runSentimentAnalyzer(indexName)
+    indexCreationResult match {
+      case Left(_) => System.exit(0)
+      case Right(indexName) => runSentimentAnalyzer(indexName)
+    }
   }
 
-
-  private def runSentimentAnalyzer(indexName: String): Unit = {
+  private def runSentimentAnalyzer(indexName: String)(implicit appConfig: AppConfig): Unit = {
     val conf = new SparkConf().setMaster("local[*]").setAppName("Twitter")
     conf.set("es.index.auto.create", "true")
     val sc = new SparkContext(conf)
@@ -52,5 +54,4 @@ object SentimentAnalyzer extends App {
     if (sc != null) sc.stop()
     modelService.stop()
   }
-
 }

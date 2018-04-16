@@ -3,6 +3,7 @@ package edu.twitter.model.impl.neuralnetwork
 import java.io._
 
 import com.typesafe.scalalogging.Logger
+import edu.twitter.config.AppConfig
 import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
 import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
@@ -19,14 +20,18 @@ import org.nd4j.linalg.lossfunctions.LossFunctions
 /**
   * Build and evaluate the Neural network model from training and testing data set.
   */
-class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
+class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) extends GenericModelBuilder {
 
   private val logger = Logger(classOf[NeuralNetworkBuilder])
-  private val modelPath = this.getClass().getClassLoader().getResource("saved-models").getPath() + File.separator + "NeuralNetworkModel.net"
+  private val modelPath = appConfig.paths.savedNeuralNetworkModelPath
 
   /** Location (local file system) for the Google News vectors. */
-  //val WORD_VECTORS_PATH: String = this.getClass.getClassLoader.getResource("NewsModel.txt").getPath
-  private val WORD_VECTORS_PATH: String = this.getClass.getClassLoader.getResource("GoogleNews-vectors-negative300.bin.gz").getPath
+  private val WORD_VECTORS_PATH: String =
+    if (appConfig.isProd) {
+      appConfig.paths.googleNewsPath
+    } else {
+      appConfig.paths.newsModelPath
+    }
 
   //val wordVectors = WordVectorSerializer.loadTxtVectors(new File(WORD_VECTORS_PATH))
   private val wordVectors = WordVectorSerializer.readWord2VecModel(new File(WORD_VECTORS_PATH))
@@ -46,12 +51,11 @@ class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
     }
 
     val batchSize = 256 //Number of examples in each minibatch
-    val nEpochs = 10 //Number of epochs (full passes of training data) to train on
+    val nEpochs = appConfig.neuralNetworkEpochs //Number of epochs (full passes of training data) to train on
     val truncateReviewsToLength = 280 //Truncate reviews with length (# words) greater than this
 
     //DataSetIterators for training and testing respectively
-    val dataPath = this.getClass.getClassLoader.getResource("labeled-tweets").getPath
-    val data = new TweetsLoader(sc).loadDataSet(dataPath)
+    val data = new TweetsLoader(sc).loadDataSet(appConfig.paths.trainingDataPath)
     val Array(trainData, testData) = data.randomSplit(Array(0.85, 0.15))
     val train = new DataIterator(trainData, wordVectors, batchSize, truncateReviewsToLength)
     val test = new DataIterator(testData, wordVectors, batchSize, truncateReviewsToLength)
