@@ -46,13 +46,13 @@ class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
     }
 
     val batchSize = 256 //Number of examples in each minibatch
-    val nEpochs = 1 //Number of epochs (full passes of training data) to train on
+    val nEpochs = 10 //Number of epochs (full passes of training data) to train on
     val truncateReviewsToLength = 280 //Truncate reviews with length (# words) greater than this
 
     //DataSetIterators for training and testing respectively
     val dataPath = this.getClass.getClassLoader.getResource("labeled-tweets").getPath
     val data = new TweetsLoader(sc).loadDataSet(dataPath)
-    val Array(trainData, testData) = data.randomSplit(Array(0.7, 0.3))
+    val Array(trainData, testData) = data.randomSplit(Array(0.85, 0.15))
     val train = new DataIterator(trainData, wordVectors, batchSize, truncateReviewsToLength)
     val test = new DataIterator(testData, wordVectors, batchSize, truncateReviewsToLength)
 
@@ -85,7 +85,7 @@ class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
       .weightInit(WeightInit.XAVIER)
       .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue)
       .gradientNormalizationThreshold(1.0)
-      .learningRate(0.02)
+      .learningRate(0.2)
       .list
       .layer(0, new GravesLSTM.Builder().nIn(vectorSize).nOut(256)
         .activation(Activation.TANH)

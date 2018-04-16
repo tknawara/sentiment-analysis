@@ -7,6 +7,7 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.elasticsearch.spark.rdd.EsSpark
 import edu.twitter.index.IndexHandler
+import edu.twitter.model.impl.neuralnetwork.{NeuralNetworkBuilder, NeuralNetworkModel}
 
 /**
   * Application's entry point.
@@ -33,13 +34,15 @@ object SentimentAnalyzer extends App {
     conf.set("es.index.auto.create", "true")
     val sc = new SparkContext(conf)
     val ssc = new StreamingContext(sc, Seconds(10))
+    val modelNames = List(GradientBoostingModel.name, NeuralNetworkModel.name)
+    val builders = List(new GradientBoostingBuilder(sc), new NeuralNetworkBuilder(sc))
 
-    val modelService = new ModelService(List(new GradientBoostingBuilder(sc)))
+    val modelService = new ModelService(builders)
     modelService.start()
 
 
     val classifier = new Classifier(ssc)
-    val classifiedStream = classifier.createClassifiedStream(GradientBoostingModel.name)
+    val classifiedStream = classifier.createClassifiedStream(modelNames)
     classifiedStream.foreachRDD(EsSpark.saveToEs(_, indexName))
 
     ssc.start()

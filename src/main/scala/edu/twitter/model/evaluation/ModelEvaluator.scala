@@ -92,10 +92,8 @@ class ModelEvaluator(sc: SparkContext) {
   private def evaluateRecords(modelName: String, data: RDD[Record]): RDD[EvaluatedTrainingTweet] = {
     val evaluation = for {
       r <- data
-      resOption = ModelClient.callModelService(modelName, r.tweetText)
-      if resOption.isPresent
-      modelPrediction = resOption.get()
-    } yield EvaluatedTrainingTweet(r.actualLabel, modelPrediction, r.tweetText)
+      callRes <- ModelClient.callModelService(modelName, r.tweetText)
+    } yield EvaluatedTrainingTweet(r.actualLabel, callRes, r.tweetText)
 
     evaluation
   }
