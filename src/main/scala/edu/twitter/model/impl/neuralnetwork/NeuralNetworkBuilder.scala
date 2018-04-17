@@ -26,16 +26,8 @@ class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) exte
   private val logger = Logger(classOf[NeuralNetworkBuilder])
   private val modelPath = appConfig.paths.savedNeuralNetworkModelPath
 
-  /** Location (local file system) for the Google News vectors. */
-  private val WORD_VECTORS_PATH: String =
-    if (appConfig.isProd) {
-      appConfig.paths.googleNewsPath
-    } else {
-      appConfig.paths.newsModelPath
-    }
-
   //val wordVectors = WordVectorSerializer.loadTxtVectors(new File(WORD_VECTORS_PATH))
-  private val wordVectors = WordVectorSerializer.readWord2VecModel(new File(WORD_VECTORS_PATH))
+  private val wordVectors = WordVectorSerializer.readWord2VecModel(new File(appConfig.wordVectorPath))
   private val vectorSize: Int = wordVectors.getWordVector(wordVectors.vocab.wordAtIndex(0)).length // 100 in our case
 
   /**
@@ -76,9 +68,6 @@ class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) exte
     }
 
     ModelSerializer.writeModel(net, modelPath, true)
-    if (appConfig.evaluateModels) {
-      new ModelEvaluator(sc).evaluate(NeuralNetworkModel.name)
-    }
 
     new NeuralNetworkModel(net, wordVectors)
   }

@@ -8,6 +8,7 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.elasticsearch.spark.rdd.EsSpark
 import edu.twitter.index.IndexHandler
+import edu.twitter.model.evaluation.ModelEvaluator
 import edu.twitter.model.impl.neuralnetwork.{NeuralNetworkBuilder, NeuralNetworkModel}
 
 /**
@@ -42,6 +43,9 @@ object SentimentAnalyzer {
     val modelService = new ModelService(builders)
     modelService.start()
 
+    if (appConfig.evaluateModels) {
+      new ModelEvaluator(sc).evaluate(modelNames)
+    }
 
     val classifier = new Classifier(ssc)
     val classifiedStream = classifier.createClassifiedStream(modelNames)

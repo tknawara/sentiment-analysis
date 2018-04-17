@@ -31,6 +31,10 @@ sealed trait AppConfig {
     * boosting model. */
   def gradientDepth: Int
 
+  /** Get the path of word vector for
+    * neural model. */
+  def wordVectorPath: String
+
   val paths: DataPaths.type = DataPaths
 }
 
@@ -64,6 +68,7 @@ object DevConfig extends AppConfig {
   val persistEvaluation = false
   val gradientIterations = 20
   val gradientDepth = 5
+  val wordVectorPath: String = paths.newsModelPath
 }
 
 /** Representation of the production
@@ -75,4 +80,5 @@ object ProdConfig extends AppConfig {
   val persistEvaluation = true
   val gradientIterations = 26
   val gradientDepth = 6
+  val wordVectorPath: String = paths.googleNewsPath
 }

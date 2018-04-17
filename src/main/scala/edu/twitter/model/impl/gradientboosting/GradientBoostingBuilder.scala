@@ -54,9 +54,6 @@ class GradientBoostingBuilder(sc: SparkContext)(implicit appConfig: AppConfig) e
     evaluate(model, trainingSet, "Training")
     evaluate(model, testSet, "Testing")
     model.save(sc, modelPath)
-    if (appConfig.evaluateModels) {
-      new ModelEvaluator(sc).evaluate(GradientBoostingModel.name)
-    }
 
     new GradientBoostingModel(model)
   }

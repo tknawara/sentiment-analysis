@@ -50,6 +50,15 @@ class ModelEvaluator(sc: SparkContext)(implicit appConfig: AppConfig) {
   private val labelMapping = Map(0.0 -> Label.SAD, 1.0 -> Label.HAPPY)
 
   /**
+    * Evaluate the given Seq of models.
+    *
+    * @param models target models for evaluation
+    */
+  def evaluate(models: Seq[String]): Unit = {
+    models.foreach(evaluate)
+  }
+
+  /**
     * Show how the model will perform against a
     * prelabeled data.
     *
