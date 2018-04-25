@@ -10,10 +10,6 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
 import org.elasticsearch.spark.rdd.EsSpark
 
-/** Representation of the records used for training
-  * and testing the model. */
-case class Record(tweetText: String, actualLabel: Label)
-
 /** Grouping of the evaluation necessary fields
   * these fields are used for evaluating the training error. */
 case class EvaluationFields(happyCorrect: Int, happyTotal: Int, sadCorrect: Int, sadTotal: Int) {
@@ -81,27 +77,12 @@ class ModelEvaluator(sc: SparkContext)(implicit appConfig: AppConfig) {
     * @return rdd of `EvaluatedTrainingTweet`
     */
   private def evaluateData(modelName: String, data: RDD[Row]): RDD[EvaluatedTrainingTweet] = {
-    val transformedData = for {
+    val evaluation = for {
       row <- data
       actualLabel = labelMapping(row.getAs[Double]("label"))
       tweetText = row.getAs[String]("msg")
-    } yield Record(tweetText, actualLabel)
-
-    evaluateRecords(modelName, transformedData)
-  }
-
-  /**
-    * Evaluate all the testing data.
-    *
-    * @param modelName name of the target model for evaluation.
-    * @param data      evaluation data
-    * @return rdd of `EvaluatedTrainingTweet` instances.
-    */
-  private def evaluateRecords(modelName: String, data: RDD[Record]): RDD[EvaluatedTrainingTweet] = {
-    val evaluation = for {
-      r <- data
-      callRes <- ModelClient.callModelService(modelName, r.tweetText)
-    } yield EvaluatedTrainingTweet(r.actualLabel, callRes, r.tweetText)
+      callRes <- ModelClient.callModelService(modelName, tweetText)
+    } yield EvaluatedTrainingTweet(actualLabel, callRes, tweetText)
 
     evaluation
   }

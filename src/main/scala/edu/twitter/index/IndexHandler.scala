@@ -4,15 +4,16 @@ import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.ElasticsearchClientUri
 import com.sksamuel.elastic4s.http.{HttpClient, RequestFailure}
 import com.typesafe.scalalogging.Logger
-import edu.twitter.config.AppConfig
 
 /**
   * Class responsible for creating ElasticSearch index with specified mappings.
   */
-class IndexHandler(implicit appConfig: AppConfig) {
+class IndexHandler {
 
   private val logger = Logger(classOf[IndexHandler])
   private val IndexAlreadyExistsErrorMessage = "resource_already_exists_exception"
+  private val ElasticHostName = "localhost"
+  private val ElasticPort = 9200
 
   /**
     * create an ElasticSearch index if it doesn't exist.
@@ -24,7 +25,7 @@ class IndexHandler(implicit appConfig: AppConfig) {
     */
   def create(indexName: String, mappingName: String): Either[RequestFailure, String] = {
 
-    val elasticClient = HttpClient(ElasticsearchClientUri(appConfig.ElasticHostName, appConfig.ElasticPort))
+    val elasticClient = HttpClient(ElasticsearchClientUri(ElasticHostName, ElasticPort))
     val path = getClass.getClassLoader.getResourceAsStream(s"index-mapping/$indexName.json")
     val pattern = scala.io.Source.fromInputStream(path).mkString
 

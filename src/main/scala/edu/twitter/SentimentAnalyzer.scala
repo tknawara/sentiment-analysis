@@ -2,14 +2,14 @@ package edu.twitter
 
 import edu.twitter.classification.Classifier
 import edu.twitter.config.{AppConfig, DevConfig, ProdConfig}
-import edu.twitter.model.impl.gradientboosting.{GradientBoostingBuilder, GradientBoostingModel}
-import edu.twitter.model.service.ModelService
-import org.apache.spark.streaming.{Seconds, StreamingContext}
-import org.apache.spark.{SparkConf, SparkContext}
-import org.elasticsearch.spark.rdd.EsSpark
 import edu.twitter.index.IndexHandler
 import edu.twitter.model.evaluation.ModelEvaluator
+import edu.twitter.model.impl.gradientboosting.{GradientBoostingBuilder, GradientBoostingModel}
 import edu.twitter.model.impl.neuralnetwork.{NeuralNetworkBuilder, NeuralNetworkModel}
+import edu.twitter.model.service.ModelService
+import org.apache.spark.streaming.StreamingContext
+import org.apache.spark.{SparkConf, SparkContext}
+import org.elasticsearch.spark.rdd.EsSpark
 
 /**
   * Application's entry point.
