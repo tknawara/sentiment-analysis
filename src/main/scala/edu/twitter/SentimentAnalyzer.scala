@@ -36,7 +36,7 @@ object SentimentAnalyzer {
     val conf = new SparkConf().setMaster("local[*]").setAppName("Twitter")
     conf.set("es.index.auto.create", "true")
     val sc = new SparkContext(conf)
-    val ssc = new StreamingContext(sc, Seconds(10))
+    val ssc = new StreamingContext(sc, appConfig.streamingInterval)
     val modelNames = List(GradientBoostingModel.name, NeuralNetworkModel.name)
     val builders = List(new GradientBoostingBuilder(sc), new NeuralNetworkBuilder(sc))
 

@@ -12,7 +12,7 @@ object ClassifierTest {
 
     val conf = new SparkConf().setMaster("local[*]").setAppName("Twitter")
     val sc = new SparkContext(conf)
-    val ssc = new StreamingContext(sc, Seconds(10))
+    val ssc = new StreamingContext(sc, appConfig.streamingInterval)
 
     val modelService = new ModelService(List(new GradientBoostingBuilder(sc)))
     modelService.start()

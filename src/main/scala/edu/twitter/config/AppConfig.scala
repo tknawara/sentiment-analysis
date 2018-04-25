@@ -2,6 +2,8 @@ package edu.twitter.config
 
 import java.io.File
 
+import org.apache.spark.streaming.Seconds
+
 /** Application Configuration
   * we can add any configurations here to
   * be used by all parts of the application. */
@@ -41,6 +43,10 @@ sealed trait AppConfig {
   /** Used for creating elasticsearch index*/
   val ElasticPort = 9200
 
+  /** Used for configuring the streaming
+    * window interval. */
+  val streamingInterval = Seconds(10)
+
   val paths: DataPaths.type = DataPaths
 }
 
@@ -51,9 +57,8 @@ object DataPaths {
   lazy val savedGradientBoostingModelPath: String = getAbsolutePath("saved-models") + File.separator + "GradientBoosting"
   lazy val newsModelPath: String = getAbsolutePath("NewsModel.txt")
   lazy val googleNewsPath: String = getAbsolutePath("GoogleNews-vectors-negative300.bin.gz")
-
-  val trainingDataPath: String = getAbsolutePath("labeled-tweets")
-  val validationDataPath: String = getAbsolutePath("labeled-tweets")
+  lazy val trainingDataPath: String = getAbsolutePath("labeled-tweets")
+  lazy val validationDataPath: String = getAbsolutePath("labeled-tweets")
 
   /**
     *
