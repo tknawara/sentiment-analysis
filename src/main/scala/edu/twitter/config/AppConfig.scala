@@ -35,6 +35,12 @@ sealed trait AppConfig {
     * neural model. */
   def wordVectorPath: String
 
+  /** Used for creating elasticsearch index. */
+  val ElasticHostName = "localhost"
+
+  /** Used for creating elasticsearch index*/
+  val ElasticPort = 9200
+
   val paths: DataPaths.type = DataPaths
 }
 
