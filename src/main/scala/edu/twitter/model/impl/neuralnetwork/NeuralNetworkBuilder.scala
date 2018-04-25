@@ -3,7 +3,9 @@ package edu.twitter.model.impl.neuralnetwork
 import java.io._
 
 import com.typesafe.scalalogging.Logger
+import edu.twitter.config.AppConfig
 import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
+import edu.twitter.model.evaluation.ModelEvaluator
 import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
 import org.deeplearning4j.eval.Evaluation
@@ -19,17 +21,13 @@ import org.nd4j.linalg.lossfunctions.LossFunctions
 /**
   * Build and evaluate the Neural network model from training and testing data set.
   */
-class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
+class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) extends GenericModelBuilder {
 
   private val logger = Logger(classOf[NeuralNetworkBuilder])
-  private val modelPath = this.getClass().getClassLoader().getResource("saved-models").getPath() + File.separator + "NeuralNetworkModel.net"
-
-  /** Location (local file system) for the Google News vectors. */
-  //val WORD_VECTORS_PATH: String = this.getClass.getClassLoader.getResource("NewsModel.txt").getPath
-  private val WORD_VECTORS_PATH: String = this.getClass.getClassLoader.getResource("GoogleNews-vectors-negative300.bin.gz").getPath
+  private val modelPath = appConfig.paths.savedNeuralNetworkModelPath
 
   //val wordVectors = WordVectorSerializer.loadTxtVectors(new File(WORD_VECTORS_PATH))
-  private val wordVectors = WordVectorSerializer.readWord2VecModel(new File(WORD_VECTORS_PATH))
+  private val wordVectors = WordVectorSerializer.readWord2VecModel(new File(appConfig.wordVectorPath))
   private val vectorSize: Int = wordVectors.getWordVector(wordVectors.vocab.wordAtIndex(0)).length // 100 in our case
 
   /**
@@ -46,13 +44,12 @@ class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
     }
 
     val batchSize = 256 //Number of examples in each minibatch
-    val nEpochs = 1 //Number of epochs (full passes of training data) to train on
+    val nEpochs = appConfig.neuralNetworkEpochs //Number of epochs (full passes of training data) to train on
     val truncateReviewsToLength = 280 //Truncate reviews with length (# words) greater than this
 
     //DataSetIterators for training and testing respectively
-    val dataPath = this.getClass.getClassLoader.getResource("labeled-tweets").getPath
-    val data = new TweetsLoader(sc).loadDataSet(dataPath)
-    val Array(trainData, testData) = data.randomSplit(Array(0.7, 0.3))
+    val data = new TweetsLoader(sc).loadDataSet(appConfig.paths.trainingDataPath)
+    val Array(trainData, testData) = data.randomSplit(Array(0.85, 0.15))
     val train = new DataIterator(trainData, wordVectors, batchSize, truncateReviewsToLength)
     val test = new DataIterator(testData, wordVectors, batchSize, truncateReviewsToLength)
 
@@ -71,6 +68,7 @@ class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
     }
 
     ModelSerializer.writeModel(net, modelPath, true)
+
     new NeuralNetworkModel(net, wordVectors)
   }
 
@@ -85,7 +83,7 @@ class NeuralNetworkBuilder(sc: SparkContext) extends GenericModelBuilder {
       .weightInit(WeightInit.XAVIER)
       .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue)
       .gradientNormalizationThreshold(1.0)
-      .learningRate(0.02)
+      .learningRate(0.2)
       .list
       .layer(0, new GravesLSTM.Builder().nIn(vectorSize).nOut(256)
         .activation(Activation.TANH)

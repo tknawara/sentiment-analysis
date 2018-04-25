@@ -18,6 +18,7 @@ import org.nd4j.linalg.indexing.{INDArrayIndex, NDArrayIndex}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
+import scala.util.Random
 
 
 /**
@@ -38,7 +39,7 @@ class DataIterator(val data: RDD[Row],
   private final val vectorSize = wordVectors.getWordVector(wordVectors.vocab.wordAtIndex(0)).length
 
   private val logger = Logger(classOf[DataIterator])
-  private val dataList = data.collect()
+  private var dataList = Random.shuffle(data.collect().toList)
   final private val tokenizerFactory: TokenizerFactory = new DefaultTokenizerFactory
   tokenizerFactory.setTokenPreProcessor(new CommonPreprocessor)
 
@@ -171,8 +172,10 @@ class DataIterator(val data: RDD[Row],
   def totalOutcomes: Int =
     2
 
-  def reset(): Unit =
+  def reset(): Unit = {
     dataCursor = 0
+    dataList = Random.shuffle(dataList)
+  }
 
   def resetSupported: Boolean =
     true

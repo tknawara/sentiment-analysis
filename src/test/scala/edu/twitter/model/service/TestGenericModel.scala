@@ -10,6 +10,6 @@ class TestGenericModel(val fixedLabel: Label, val name: String) extends GenericM
     * @param tweetText target tweet message for classification.
     * @return 0 for sad & 1 for happy
     */
-  override def getLabel(tweetText: String): Label = Label.HAPPY
+  override def getLabel(tweetText: String): Label = fixedLabel
 
 }

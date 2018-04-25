@@ -3,7 +3,9 @@ package edu.twitter.model.impl.gradientboosting
 import java.io.File
 
 import com.typesafe.scalalogging.Logger
+import edu.twitter.config.AppConfig
 import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
+import edu.twitter.model.evaluation.ModelEvaluator
 import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
 import org.apache.spark.mllib.evaluation.MulticlassMetrics
@@ -16,10 +18,9 @@ import org.apache.spark.rdd.RDD
 /**
   * Build and evaluate a gradient boosting model from training and testing data set.
   */
-class GradientBoostingBuilder(sc: SparkContext) extends GenericModelBuilder {
-
+class GradientBoostingBuilder(sc: SparkContext)(implicit appConfig: AppConfig) extends GenericModelBuilder {
   private val logger = Logger(classOf[GradientBoostingModel])
-  private val modelPath = this.getClass().getClassLoader().getResource("saved-models").getPath() + File.separator + "GradientBoosting"
+  private val modelPath = appConfig.paths.savedGradientBoostingModelPath
 
   /**
     * Build a GradientBoosting Classification model using a Gradient Boosting model
@@ -41,19 +42,19 @@ class GradientBoostingBuilder(sc: SparkContext) extends GenericModelBuilder {
     }
 
     val tweetsLoader = new TweetsLoader(sc)
-    val dataPath = this.getClass.getClassLoader.getResource("labeled-tweets").getPath
-    val twitterData = new SentimentModelDataCreator(tweetsLoader.loadDataSet(dataPath))
+    val twitterData = new SentimentModelDataCreator(tweetsLoader.loadDataSet(appConfig.paths.trainingDataPath))
     val (trainingSet, testSet) = twitterData.getTrainingAndTestingData()
 
     val boostingStrategy = BoostingStrategy.defaultParams("Classification")
-    boostingStrategy.setNumIterations(20)
+    boostingStrategy.setNumIterations(appConfig.gradientIterations)
     boostingStrategy.treeStrategy.setNumClasses(2)
-    boostingStrategy.treeStrategy.setMaxDepth(5)
+    boostingStrategy.treeStrategy.setMaxDepth(appConfig.gradientDepth)
 
     val model = GradientBoostedTrees.train(trainingSet, boostingStrategy)
     evaluate(model, trainingSet, "Training")
     evaluate(model, testSet, "Testing")
     model.save(sc, modelPath)
+
     new GradientBoostingModel(model)
   }
 

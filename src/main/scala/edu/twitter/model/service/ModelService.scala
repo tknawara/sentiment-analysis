@@ -1,16 +1,25 @@
 package edu.twitter.model.service
 
-import java.nio.charset.Charset
-import java.util.Base64
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import com.fasterxml.jackson.databind.ObjectMapper
 import akka.http.scaladsl.Http.ServerBinding
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import edu.twitter.model.api.GenericModelBuilder
+import spray.json.{DefaultJsonProtocol, RootJsonFormat}
+
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
+/** Representation of the post body */
+case class ModelRequestBody(tweetMsg: String)
+
+/** Helper object that contains the implicit json
+  * converter. */
+object ModelRequestBodySupport extends DefaultJsonProtocol with SprayJsonSupport {
+  implicit val ModelRequestBodyFormat: RootJsonFormat[ModelRequestBody] = jsonFormat1(ModelRequestBody)
+}
 
 /**
   * Exposes a Rest API for accessing the model.
@@ -29,13 +38,14 @@ class ModelService(builders: Seq[GenericModelBuilder]) {
 
 
   def start(): Unit = {
-    val models = builders.map(_.build())
+    import ModelRequestBodySupport._
+
+    val models = builders.par.map(_.build())
     val routes = for (model <- models) yield {
       path(s"${model.name}" / "classify") {
-        get {
-          parameters('tweet.as[String]) { tweet =>
-            val decodedTweet = new String(Base64.getUrlDecoder.decode(tweet), Charset.forName("UTF-16"))
-            val label = model.getLabel(decodedTweet)
+        post {
+          entity(as[ModelRequestBody]) { modelRequestBody =>
+            val label = model.getLabel(modelRequestBody.tweetMsg)
             complete(ModelService.objectMapper.writeValueAsString(label))
           }
         }
@@ -55,5 +65,4 @@ class ModelService(builders: Seq[GenericModelBuilder]) {
 
 object ModelService {
   val objectMapper = new ObjectMapper()
-
 }

@@ -5,28 +5,26 @@ import edu.twitter.model.Label;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Option;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Optional;
 
 /**
  * Class Responsible for communicating
  * with the model service.
  */
 public final class ModelClient {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(ModelClient.class);
     private static final CloseableHttpClient HTTP_CLIENT = HttpClients.createDefault();
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final String API_URL_TEMPLATE = "http://0.0.0.0:8080/%s/classify?tweet=%s";
+    private static final String API_URL_TEMPLATE = "http://0.0.0.0:8080/%s/classify";
 
     /**
      * Constructor.
@@ -42,32 +40,37 @@ public final class ModelClient {
      * @param tweet     tweet's text
      * @return optional of `Label`
      */
-    public static Optional<Label> callModelService(final String modelName, final String tweet) {
-        final String encodedTweet = new String(Base64.getUrlEncoder().encode(tweet.getBytes(StandardCharsets.UTF_16)));
-        final String url = String.format(API_URL_TEMPLATE, modelName, encodedTweet);
-        return executeRequest(url, Label.class);
+    public static Option<Label> callModelService(final String modelName, final String tweet) {
+        final String url = String.format(API_URL_TEMPLATE, modelName);
+        final ModelRequestBody modelRequestBody = new ModelRequestBody(tweet);
+        return executeRequest(url, modelRequestBody, Label.class);
     }
 
     /**
      * Execute the API request, then marshall the API response
      * to the given class type.
      *
-     * @param url       request url
-     * @param valueType class to marshall the response to
-     * @param <T>       return type
+     * @param url         request url
+     * @param requestBody post request body.
+     * @param valueType   class to marshall the response to
+     * @param <T>         return type
      * @return optional of {@code T}
      */
-    private static <T> Optional<T> executeRequest(final String url, final Class<T> valueType) {
+    private static <T> Option<T> executeRequest(final String url,
+                                                final ModelRequestBody requestBody, final Class<T> valueType) {
         try {
-            final HttpGet httpGet = new HttpGet(url);
-            final CloseableHttpResponse response = HTTP_CLIENT.execute(httpGet);
-            final HttpEntity entity = response.getEntity();
+            final HttpPost httpPost = new HttpPost(url);
+            final StringEntity requestEntity = new StringEntity(MAPPER.writeValueAsString(requestBody));
+            httpPost.setHeader("Content-type", "application/json");
+            httpPost.setEntity(requestEntity);
+            final CloseableHttpResponse response = HTTP_CLIENT.execute(httpPost);
+            final HttpEntity responseEntity = response.getEntity();
             final T modelServiceResponse =
-                    MAPPER.readValue(IOUtils.toString(entity.getContent(), Charset.defaultCharset()), valueType);
-            return Optional.of(modelServiceResponse);
+                    MAPPER.readValue(IOUtils.toString(responseEntity.getContent(), Charset.defaultCharset()), valueType);
+            return Option.apply(modelServiceResponse);
         } catch (final IOException e) {
             LOGGER.warn("Error in calling the model service: {}", e);
-            return Optional.empty();
+            return Option.empty();
         }
     }
 }
