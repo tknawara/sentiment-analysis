@@ -1,5 +1,6 @@
 package edu.twitter.model.impl.gradientboosting
 
+import edu.twitter.config.{AppConfig, DevConfig}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -11,6 +12,7 @@ import scala.util.Try
 @RunWith(classOf[JUnitRunner])
 class ModelSuite extends FunSuite with BeforeAndAfterAll {
   @transient private var sc: SparkContext = _
+  implicit val appConfig: AppConfig = DevConfig
 
   override def beforeAll(): Unit = {
     val conf = new SparkConf().setMaster("local[*]").setAppName("ModelSuite")

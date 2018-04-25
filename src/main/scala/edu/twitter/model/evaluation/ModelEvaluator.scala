@@ -1,6 +1,7 @@
 package edu.twitter.model.evaluation
 
 import com.typesafe.scalalogging.Logger
+import edu.twitter.config.AppConfig
 import edu.twitter.model.Label
 import edu.twitter.model.client.ModelClient
 import edu.twitter.model.impl.TweetsLoader
@@ -8,10 +9,6 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
 import org.elasticsearch.spark.rdd.EsSpark
-
-/** Representation of the records used for training
-  * and testing the model. */
-case class Record(tweetText: String, actualLabel: Label)
 
 /** Grouping of the evaluation necessary fields
   * these fields are used for evaluating the training error. */
@@ -44,23 +41,30 @@ case class EvaluatedTrainingTweet(actualLabel: Label, modelPrediction: Label, tw
   *
   * @param sc spark context.
   */
-class ModelEvaluator(sc: SparkContext) {
+class ModelEvaluator(sc: SparkContext)(implicit appConfig: AppConfig) {
   private val logger = Logger(classOf[ModelEvaluator])
   private val labelMapping = Map(0.0 -> Label.SAD, 1.0 -> Label.HAPPY)
+
+  /**
+    * Evaluate the given Seq of models.
+    *
+    * @param models target models for evaluation
+    */
+  def evaluate(models: Seq[String]): Unit = {
+    models.foreach(evaluate)
+  }
 
   /**
     * Show how the model will perform against a
     * prelabeled data.
     *
     * @param modelName name of the target model for evaluation.
-    * @param path      path of the testing data.
-    * @param persist   if true results will be saved to `Elasticsearch`
     */
-  def evaluate(modelName: String, path: String, persist: Boolean = false): Unit = {
+  def evaluate(modelName: String): Unit = {
     val tweetsLoader = new TweetsLoader(sc)
-    val evaluation = evaluateData(modelName, tweetsLoader.loadDataSet(path))
+    val evaluation = evaluateData(modelName, tweetsLoader.loadDataSet(appConfig.paths.validationDataPath))
     performEvaluationAnalysis(evaluation)
-    if (persist) {
+    if (appConfig.persistEvaluation) {
       EsSpark.saveToEs(evaluation, s"${modelName.toLowerCase}/performance")
     }
   }
@@ -73,27 +77,12 @@ class ModelEvaluator(sc: SparkContext) {
     * @return rdd of `EvaluatedTrainingTweet`
     */
   private def evaluateData(modelName: String, data: RDD[Row]): RDD[EvaluatedTrainingTweet] = {
-    val transformedData = for {
+    val evaluation = for {
       row <- data
       actualLabel = labelMapping(row.getAs[Double]("label"))
       tweetText = row.getAs[String]("msg")
-    } yield Record(tweetText, actualLabel)
-
-    evaluateRecords(modelName, transformedData)
-  }
-
-  /**
-    * Evaluate all the testing data.
-    *
-    * @param modelName name of the target model for evaluation.
-    * @param data      evaluation data
-    * @return rdd of `EvaluatedTrainingTweet` instances.
-    */
-  private def evaluateRecords(modelName: String, data: RDD[Record]): RDD[EvaluatedTrainingTweet] = {
-    val evaluation = for {
-      r <- data
-      callRes <- ModelClient.callModelService(modelName, r.tweetText)
-    } yield EvaluatedTrainingTweet(r.actualLabel, callRes, r.tweetText)
+      callRes <- ModelClient.callModelService(modelName, tweetText)
+    } yield EvaluatedTrainingTweet(actualLabel, callRes, tweetText)
 
     evaluation
   }

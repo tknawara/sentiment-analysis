@@ -21,7 +21,7 @@ class ModelClientSuite extends FunSuite {
     val ss = new StringEntity(res)
     println(res)
     println(ss)
-    println(IOUtils.toString(ss.getContent(), Charset.defaultCharset()))
+    println(IOUtils.toString(ss.getContent, Charset.defaultCharset()))
     assert(res != null)
   }
 }

@@ -1,5 +1,6 @@
 package edu.twitter.model.service
 
+import edu.twitter.config.{AppConfig, DevConfig}
 import edu.twitter.model.Label
 import edu.twitter.model.client.ModelClient
 import org.junit.runner.RunWith
@@ -10,6 +11,7 @@ import org.scalatest.{BeforeAndAfterAll, FunSuite, Ignore}
 @RunWith(classOf[JUnitRunner])
 class ModelServiceSuite extends FunSuite with BeforeAndAfterAll {
   @transient private var modelService: ModelService = _
+  implicit val appConfig: AppConfig = DevConfig
   private val builderOne = new TestGenericModelBuilder(Label.SAD, "ModelOne")
   private val builderTwo = new TestGenericModelBuilder(Label.HAPPY, "ModelTwo")
 
