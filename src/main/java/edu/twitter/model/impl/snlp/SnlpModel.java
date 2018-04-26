@@ -9,7 +9,6 @@ import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.util.CoreMap;
 import edu.twitter.model.Label;
 import edu.twitter.model.api.GenericModel;
-import edu.twitter.model.impl.TweetTextFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +47,8 @@ public class SnlpModel implements GenericModel {
      */
     @Override
     public Label getLabel(final String tweetText) {
-        final String filteredTweet = TweetTextFilter.filterTweet(tweetText).replaceAll("\\.", ",");
+        //final String filteredTweet = TweetTextFilter$.MODULE$.filterTweet(tweetText).replaceAll("\\.", ",");
+        final String filteredTweet = tweetText.replaceAll("\\.", ",");
         final Annotation annotation = pipeline.process(filteredTweet);
         final Optional<Label> label = annotation.get(CoreAnnotations.SentencesAnnotation.class)
                 .stream()
