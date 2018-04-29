@@ -2,6 +2,7 @@ package edu.twitter.classification
 
 import java.text.SimpleDateFormat
 
+import edu.twitter.config.{AppConfig, DevConfig}
 import edu.twitter.model.client.ModelClient
 import edu.twitter.streaming.TwitterStream
 import org.apache.spark.streaming.StreamingContext
@@ -25,14 +26,14 @@ class Classifier(ssc: StreamingContext) {
     * @param models seq of model names.
     * @return stream of `ClassifiedTweets`
     */
-  def createClassifiedStream(models: Seq[String]): DStream[ClassifiedTweet] = {
+  def createClassifiedStream(models: Seq[String])(implicit appConfig: AppConfig): DStream[ClassifiedTweet] = {
     val tweets = new TwitterStream(ssc).createStream()
     val supportedLangIso = Set("en", "eng")
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
     val classifiedStream = for {
       tweet <- tweets
       if supportedLangIso(tweet.getLang)
-      responses = models.map(name => (name, ModelClient.callModelService(name, tweet.getText)))
+      responses = models.map(name => (name, ModelClient.callModelService(appConfig.modelServicePorts(name), name, tweet.getText)))
       allExist = responses.forall { case (_, r) => r.nonEmpty }
       if allExist
       (modelName, modelResp) <- responses

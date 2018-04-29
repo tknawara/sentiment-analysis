@@ -81,7 +81,7 @@ class ModelEvaluator(sc: SparkContext)(implicit appConfig: AppConfig) {
       row <- data
       actualLabel = labelMapping(row.getAs[Double]("label"))
       tweetText = row.getAs[String]("msg")
-      callRes <- ModelClient.callModelService(modelName, tweetText)
+      callRes <- ModelClient.callModelService(appConfig.modelServicePorts(modelName), modelName, tweetText)
     } yield EvaluatedTrainingTweet(actualLabel, callRes, tweetText)
 
     evaluation
