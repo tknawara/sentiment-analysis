@@ -38,6 +38,7 @@ public final class ModelClient {
      *
      * @param modelName name of the target model.
      * @param tweet     tweet's text
+     * @param port port of the service model.
      * @return optional of `Label`
      */
     public static Option<Label> callModelService(final String port, final String modelName, final String tweet) {

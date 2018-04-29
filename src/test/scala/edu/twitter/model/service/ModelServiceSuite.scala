@@ -21,14 +21,15 @@ class ModelServiceSuite extends FunSuite with BeforeAndAfterAll {
   }
 
   test("the model client's result should match the model's response") {
-    val resp = ModelClient.callModelService(builderOne.modelName, "hello")
+    val resp = ModelClient.callModelService("8080", builderOne.modelName, "hello")
     assert(resp.get == builderOne.fixedLabel)
   }
 
   test("Model service can support multiple models") {
     val tweet = "hello"
-    val modelOneClassification = ModelClient.callModelService(builderOne.modelName, tweet)
-    val modelTwoClassification = ModelClient.callModelService(builderTwo.modelName, tweet)
+    val port = "8080"
+    val modelOneClassification = ModelClient.callModelService(port, builderOne.modelName, tweet)
+    val modelTwoClassification = ModelClient.callModelService(port, builderTwo.modelName, tweet)
     assert(modelOneClassification.get == builderOne.fixedLabel)
     assert(modelTwoClassification.get == builderTwo.fixedLabel)
   }

@@ -27,10 +27,10 @@ class ModelClientFailedTweetSuite extends FunSuite with BeforeAndAfterAll {
 
   test("test jackson") {
     val text = "RT @ChildhoodShows: Before there was Troy Bolton there was Eddie Thomas https://t.co/QlxfSvtojc"
-    val resOne = ModelClient.callModelService(NeuralNetworkModel.name, text)
+    val resOne = ModelClient.callModelService(appConfig.modelServicePorts(NeuralNetworkModel.name), NeuralNetworkModel.name, text)
     assert(resOne.get == Label.HAPPY)
 
-    val resTwo = ModelClient.callModelService(GradientBoostingModel.name, text)
+    val resTwo = ModelClient.callModelService(appConfig.modelServicePorts(GradientBoostingModel.name), GradientBoostingModel.name, text)
     assert(resTwo.nonEmpty)
   }
 
