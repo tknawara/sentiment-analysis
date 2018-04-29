@@ -24,7 +24,7 @@ public final class ModelClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModelClient.class);
     private static final CloseableHttpClient HTTP_CLIENT = HttpClients.createDefault();
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final String API_URL_TEMPLATE = "http://0.0.0.0:8080/%s/classify";
+    private static final String API_URL_TEMPLATE = "http://0.0.0.0:%s/%s/classify";
 
     /**
      * Constructor.
@@ -38,10 +38,11 @@ public final class ModelClient {
      *
      * @param modelName name of the target model.
      * @param tweet     tweet's text
+     * @param port port of the service model.
      * @return optional of `Label`
      */
-    public static Option<Label> callModelService(final String modelName, final String tweet) {
-        final String url = String.format(API_URL_TEMPLATE, modelName);
+    public static Option<Label> callModelService(final String port, final String modelName, final String tweet) {
+        final String url = String.format(API_URL_TEMPLATE, port, modelName);
         final ModelRequestBody modelRequestBody = new ModelRequestBody(tweet);
         return executeRequest(url, modelRequestBody, Label.class);
     }
