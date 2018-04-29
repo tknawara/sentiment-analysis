@@ -14,9 +14,10 @@ class ModelServiceSuite extends FunSuite with BeforeAndAfterAll {
   implicit val appConfig: AppConfig = DevConfig
   private val builderOne = new TestGenericModelBuilder(Label.SAD, "ModelOne")
   private val builderTwo = new TestGenericModelBuilder(Label.HAPPY, "ModelTwo")
+  private val slowBuilder = new SlowModelBuilder(10000)
 
   override def beforeAll(): Unit = {
-    modelService = new ModelService(List(builderOne, builderTwo))
+    modelService = new ModelService(List(builderOne, builderTwo, slowBuilder))
     modelService.start()
   }
 
@@ -32,6 +33,11 @@ class ModelServiceSuite extends FunSuite with BeforeAndAfterAll {
     val modelTwoClassification = ModelClient.callModelService(port, builderTwo.modelName, tweet)
     assert(modelOneClassification.get == builderOne.fixedLabel)
     assert(modelTwoClassification.get == builderTwo.fixedLabel)
+  }
+
+  test("Client should timeout in case of very slow model") {
+    val resp = ModelClient.callModelService("8080", SlowModel.name, "hello")
+    assert(resp.isEmpty)
   }
 
   override def afterAll(): Unit = {

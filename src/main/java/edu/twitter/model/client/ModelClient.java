@@ -15,6 +15,8 @@ import scala.Option;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Class Responsible for communicating
@@ -24,6 +26,7 @@ public final class ModelClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModelClient.class);
     private static final CloseableHttpClient HTTP_CLIENT = HttpClients.createDefault();
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final int TIME_OUT = 5;
     private static final String API_URL_TEMPLATE = "http://0.0.0.0:%s/%s/classify";
 
     /**
@@ -38,13 +41,20 @@ public final class ModelClient {
      *
      * @param modelName name of the target model.
      * @param tweet     tweet's text
-     * @param port port of the service model.
+     * @param port      port of the service model.
      * @return optional of `Label`
      */
     public static Option<Label> callModelService(final String port, final String modelName, final String tweet) {
         final String url = String.format(API_URL_TEMPLATE, port, modelName);
         final ModelRequestBody modelRequestBody = new ModelRequestBody(tweet);
-        return executeRequest(url, modelRequestBody, Label.class);
+        try {
+            return CompletableFuture
+                    .supplyAsync(() -> executeRequest(url, modelRequestBody, Label.class))
+                    .get(TIME_OUT, TimeUnit.SECONDS);
+        } catch (final Exception e) {
+            LOGGER.info("API call timed out");
+            return Option.empty();
+        }
     }
 
     /**
