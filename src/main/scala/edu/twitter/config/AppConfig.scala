@@ -2,12 +2,15 @@ package edu.twitter.config
 
 import java.io.File
 
+import edu.twitter.model.impl.gradientboosting.GradientBoostingModel
+import edu.twitter.model.impl.neuralnetwork.NeuralNetworkModel
+import edu.twitter.model.impl.textblob.TextBlobModel
 import org.apache.spark.streaming.Seconds
 
 /** Application Configuration
   * we can add any configurations here to
   * be used by all parts of the application. */
-sealed trait AppConfig {
+sealed trait AppConfig extends Serializable {
 
   /** defines wither we are running
     * in production or not. */
@@ -37,6 +40,9 @@ sealed trait AppConfig {
     * neural model. */
   def wordVectorPath: String
 
+  /** Get Model Service Port From Model Name */
+  def modelServicePorts: Map[String, String]
+
   /** Used for configuring the streaming
     * window interval. */
   val streamingInterval = Seconds(10)
@@ -46,7 +52,7 @@ sealed trait AppConfig {
 
 /** Holder for all paths used in the
   * Application. */
-object DataPaths {
+object DataPaths extends Serializable {
   lazy val savedNeuralNetworkModelPath: String = getAbsolutePath("saved-models") + File.separator + "NeuralNetworkModel.net"
   lazy val savedGradientBoostingModelPath: String = getAbsolutePath("saved-models") + File.separator + "GradientBoosting"
   lazy val newsModelPath: String = getAbsolutePath("NewsModel.txt")
@@ -74,6 +80,11 @@ object DevConfig extends AppConfig {
   val gradientIterations = 20
   val gradientDepth = 5
   val wordVectorPath: String = paths.newsModelPath
+
+  val modelServicePorts: Map[String, String] =
+    Map(TextBlobModel.name -> "5000",
+      GradientBoostingModel.name -> "8080",
+      NeuralNetworkModel.name -> "8080")
 }
 
 /** Representation of the production
@@ -86,4 +97,9 @@ object ProdConfig extends AppConfig {
   val gradientIterations = 26
   val gradientDepth = 6
   val wordVectorPath: String = paths.googleNewsPath
+
+  val modelServicePorts: Map[String, String] =
+    Map(TextBlobModel.name -> "5000",
+      GradientBoostingModel.name -> "8080",
+      NeuralNetworkModel.name -> "8080")
 }
