@@ -1,8 +1,7 @@
 package edu.twitter.model.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import edu.twitter.model.Label;
+import edu.twitter.model.client.dto.TweetRequestBody;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.net.util.Base64;
 import org.apache.http.HttpEntity;
@@ -17,46 +16,20 @@ import scala.Option;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
- * Class Responsible for communicating
- * with the model service.
+ * Responsible for sending a post requests to any
+ * service.
  */
-public final class ModelClient {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ModelClient.class);
+public final class GenericClient {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GenericClient.class);
     private static final CloseableHttpClient HTTP_CLIENT = HttpClients.createDefault();
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final int TIME_OUT = 5;
-    private static final String API_URL_TEMPLATE = "http://0.0.0.0:%s/%s/classify";
 
     /**
      * Constructor.
      */
-    private ModelClient() {
-    }
-
-    /**
-     * Perform a Get request to the model's service
-     * to get the label of the tweet.
-     *
-     * @param modelName name of the target model.
-     * @param tweet     tweet's text
-     * @param port      port of the service model.
-     * @return optional of `Label`
-     */
-    public static Option<Label> callModelService(final String port, final String modelName, final String tweet) {
-        final String url = String.format(API_URL_TEMPLATE, port, modelName);
-        final ModelRequestBody modelRequestBody = new ModelRequestBody(tweet);
-        try {
-            return CompletableFuture
-                    .supplyAsync(() -> executeRequest(url, modelRequestBody, Label.class))
-                    .get(TIME_OUT, TimeUnit.SECONDS);
-        } catch (final Exception e) {
-            LOGGER.info("API call timed out");
-            return Option.empty();
-        }
+    private GenericClient() {
     }
 
     /**
@@ -69,11 +42,11 @@ public final class ModelClient {
      * @param <T>         return type
      * @return optional of {@code T}
      */
-    private static <T> Option<T> executeRequest(final String url,
-                                                final ModelRequestBody requestBody, final Class<T> valueType) {
+    public static <T> Option<T> executeRequest(final String url,
+                                               final TweetRequestBody requestBody, final Class<T> valueType) {
         try {
             final HttpPost httpPost = new HttpPost(url);
-            ModelRequestBody encoded = new ModelRequestBody(Base64.encodeBase64String(requestBody.getTweetMsg().getBytes()));
+            TweetRequestBody encoded = new TweetRequestBody(Base64.encodeBase64String(requestBody.getTweetMsg().getBytes()));
             final StringEntity requestEntity = new StringEntity(MAPPER.writeValueAsString(encoded));
             httpPost.setHeader("Content-type", "application/json");
             httpPost.setEntity(requestEntity);
@@ -85,7 +58,6 @@ public final class ModelClient {
         } catch (final IOException e) {
             LOGGER.warn("Request body: {}", requestBody);
             LOGGER.warn("Error in calling the model service: {}", e);
-
             return Option.empty();
         }
     }

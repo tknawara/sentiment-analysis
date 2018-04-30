@@ -1,7 +1,7 @@
 package edu.twitter.model.impl.neuralnetwork
 
-import edu.twitter.model.Label
 import edu.twitter.model.api.GenericModel
+import edu.twitter.model.client.dto.Label
 import edu.twitter.model.impl.TweetTextFilter
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork

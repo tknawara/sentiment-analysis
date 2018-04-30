@@ -1,4 +1,4 @@
-package edu.twitter.model;
+package edu.twitter.model.client.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

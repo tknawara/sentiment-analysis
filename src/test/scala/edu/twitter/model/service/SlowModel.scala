@@ -1,7 +1,7 @@
 package edu.twitter.model.service
 
-import edu.twitter.model.Label
 import edu.twitter.model.api.GenericModel
+import edu.twitter.model.client.dto.Label
 
 class SlowModel(sleepInterval: Long) extends GenericModel {
   override def name: String = SlowModel.name

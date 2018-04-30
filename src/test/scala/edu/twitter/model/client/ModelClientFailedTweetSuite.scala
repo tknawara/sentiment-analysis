@@ -1,7 +1,8 @@
 package edu.twitter.model.client
 
 import edu.twitter.config.{AppConfig, DevConfig}
-import edu.twitter.model.Label
+import edu.twitter.model.client.classification.ClassificationClient
+import edu.twitter.model.client.dto.Label
 import edu.twitter.model.impl.gradientboosting.{GradientBoostingBuilder, GradientBoostingModel}
 import edu.twitter.model.impl.neuralnetwork.{NeuralNetworkBuilder, NeuralNetworkModel}
 import edu.twitter.model.service.ModelService
@@ -27,10 +28,10 @@ class ModelClientFailedTweetSuite extends FunSuite with BeforeAndAfterAll {
 
   test("test jackson") {
     val text = "RT @ChildhoodShows: Before there was Troy Bolton there was Eddie Thomas https://t.co/QlxfSvtojc"
-    val resOne = ModelClient.callModelService(appConfig.modelServicePorts(NeuralNetworkModel.name), NeuralNetworkModel.name, text)
+    val resOne = ClassificationClient.callModelService(appConfig.modelServicePorts(NeuralNetworkModel.name), NeuralNetworkModel.name, text)
     assert(resOne.get == Label.HAPPY)
 
-    val resTwo = ModelClient.callModelService(appConfig.modelServicePorts(GradientBoostingModel.name), GradientBoostingModel.name, text)
+    val resTwo = ClassificationClient.callModelService(appConfig.modelServicePorts(GradientBoostingModel.name), GradientBoostingModel.name, text)
     assert(resTwo.nonEmpty)
   }
 
