@@ -9,7 +9,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import edu.twitter.model.api.GenericModelBuilder
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
-
+import org.apache.commons.net.util.Base64
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
 /** Representation of the post body */
@@ -45,7 +45,8 @@ class ModelService(builders: Seq[GenericModelBuilder]) {
       path(s"${model.name}" / "classify") {
         post {
           entity(as[ModelRequestBody]) { modelRequestBody =>
-            val label = model.getLabel(modelRequestBody.tweetMsg)
+            val decodedMessage = new String(Base64.decodeBase64(modelRequestBody.tweetMsg))
+            val label = model.getLabel(decodedMessage)
             complete(ModelService.objectMapper.writeValueAsString(label))
           }
         }

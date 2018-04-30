@@ -34,6 +34,12 @@ case class EvaluationFields(happyCorrect: Int, happyTotal: Int, sadCorrect: Int,
   * by the model, it holds both the actual and model labels. */
 case class EvaluatedTrainingTweet(actualLabel: Label, modelPrediction: Label, tweetText: String)
 
+/** Representation of a training tweet that has been classified
+  * by the model, it holds both the actual and model labels.
+  * used to be saved in elasticsearch. */
+case class EvaluatedTrainingTweetElasticRepresentation(actualLabel: Double, modelPrediction: Double, tweetText: String)
+
+
 /** Responsible for evaluating a model based on a given
   * testing data. this class will print training analysis
   * in the console and persist the labeled data in `Elasticsearch`
@@ -41,16 +47,15 @@ case class EvaluatedTrainingTweet(actualLabel: Label, modelPrediction: Label, tw
   *
   * @param sc spark context.
   */
-class ModelEvaluator(sc: SparkContext)(implicit appConfig: AppConfig) {
+class ModelEvaluator(sc: SparkContext) {
   private val logger = Logger(classOf[ModelEvaluator])
-  private val labelMapping = Map(0.0 -> Label.SAD, 1.0 -> Label.HAPPY)
 
   /**
     * Evaluate the given Seq of models.
     *
     * @param models target models for evaluation
     */
-  def evaluate(models: Seq[String]): Unit = {
+  def evaluate(models: Seq[String])(implicit appConfig: AppConfig): Unit = {
     models.foreach(evaluate)
   }
 
@@ -60,12 +65,17 @@ class ModelEvaluator(sc: SparkContext)(implicit appConfig: AppConfig) {
     *
     * @param modelName name of the target model for evaluation.
     */
-  def evaluate(modelName: String): Unit = {
+  def evaluate(modelName: String)(implicit appConfig: AppConfig): Unit = {
     val tweetsLoader = new TweetsLoader(sc)
     val evaluation = evaluateData(modelName, tweetsLoader.loadDataSet(appConfig.paths.validationDataPath))
     performEvaluationAnalysis(evaluation)
     if (appConfig.persistEvaluation) {
-      EsSpark.saveToEs(evaluation, s"${modelName.toLowerCase}/performance")
+      val elasticEvaluatedData = for {
+        evaluatedTweet <- evaluation
+        actualLabel = evaluatedTweet.actualLabel.getKibanaRepresentation
+        modelPredictedLabel = evaluatedTweet.modelPrediction.getKibanaRepresentation
+      } yield EvaluatedTrainingTweetElasticRepresentation(actualLabel, modelPredictedLabel, evaluatedTweet.tweetText)
+      EsSpark.saveToEs(elasticEvaluatedData, s"${modelName.toLowerCase}/performance")
     }
   }
 
@@ -76,7 +86,8 @@ class ModelEvaluator(sc: SparkContext)(implicit appConfig: AppConfig) {
     * @param data      evaluation data
     * @return rdd of `EvaluatedTrainingTweet`
     */
-  private def evaluateData(modelName: String, data: RDD[Row]): RDD[EvaluatedTrainingTweet] = {
+  private def evaluateData(modelName: String, data: RDD[Row])(implicit appConfig: AppConfig): RDD[EvaluatedTrainingTweet] = {
+    val labelMapping = Map(0.0 -> Label.SAD, 1.0 -> Label.HAPPY)
     val evaluation = for {
       row <- data
       actualLabel = labelMapping(row.getAs[Double]("label"))
