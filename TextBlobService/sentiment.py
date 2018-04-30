@@ -1,12 +1,14 @@
 from flask import Flask, jsonify, request
 from textblob import TextBlob
+import base64
 app = Flask(__name__)
 
 
 @app.route('/TextBlob/classify', methods = ['POST'])
 def sentiment():
     tweet = request.get_json()['tweetMsg']
-    textBlob = TextBlob(tweet)
+    decodedTweet = base64.b64decode(tweet).decode('utf-8')
+    textBlob = TextBlob(decodedTweet)
     sentiment = textBlob.sentiment
     if(sentiment.polarity > 0):
         return '"HAPPY"'

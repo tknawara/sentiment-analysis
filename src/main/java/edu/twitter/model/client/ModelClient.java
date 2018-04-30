@@ -1,8 +1,10 @@
 package edu.twitter.model.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import edu.twitter.model.Label;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.net.util.Base64;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -71,7 +73,8 @@ public final class ModelClient {
                                                 final ModelRequestBody requestBody, final Class<T> valueType) {
         try {
             final HttpPost httpPost = new HttpPost(url);
-            final StringEntity requestEntity = new StringEntity(MAPPER.writeValueAsString(requestBody));
+            ModelRequestBody encoded = new ModelRequestBody(Base64.encodeBase64String(requestBody.getTweetMsg().getBytes()));
+            final StringEntity requestEntity = new StringEntity(MAPPER.writeValueAsString(encoded));
             httpPost.setHeader("Content-type", "application/json");
             httpPost.setEntity(requestEntity);
             final CloseableHttpResponse response = HTTP_CLIENT.execute(httpPost);
@@ -80,7 +83,9 @@ public final class ModelClient {
                     MAPPER.readValue(IOUtils.toString(responseEntity.getContent(), Charset.defaultCharset()), valueType);
             return Option.apply(modelServiceResponse);
         } catch (final IOException e) {
+            LOGGER.warn("Request body: {}", requestBody);
             LOGGER.warn("Error in calling the model service: {}", e);
+
             return Option.empty();
         }
     }
