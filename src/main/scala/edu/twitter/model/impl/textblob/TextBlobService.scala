@@ -1,5 +1,5 @@
 package edu.twitter.model.impl.textblob
 
-object TextBlobModel {
+object TextBlobService {
   val name = "TextBlob"
 }

@@ -6,7 +6,7 @@ import edu.twitter.index.IndexHandler
 import edu.twitter.model.evaluation.ModelEvaluator
 import edu.twitter.model.impl.gradientboosting.{GradientBoostingBuilder, GradientBoostingModel}
 import edu.twitter.model.impl.neuralnetwork.{NeuralNetworkBuilder, NeuralNetworkModel}
-import edu.twitter.model.impl.textblob.TextBlobModel
+import edu.twitter.model.impl.textblob.TextBlobService
 import edu.twitter.model.service.ModelService
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.{SparkConf, SparkContext}
@@ -38,7 +38,7 @@ object SentimentAnalyzer {
     conf.set("es.index.auto.create", "true")
     val sc = new SparkContext(conf)
     val ssc = new StreamingContext(sc, appConfig.streamingInterval)
-    val modelNames = List(GradientBoostingModel.name, TextBlobModel.name, NeuralNetworkModel.name)
+    val modelNames = List(GradientBoostingModel.name, TextBlobService.name, NeuralNetworkModel.name)
     val builders = List(new GradientBoostingBuilder(sc), new NeuralNetworkBuilder(sc))
 
     val modelService = new ModelService(builders)
