@@ -10,6 +10,11 @@ import org.apache.spark.SparkContext
 
 import scala.collection.parallel.immutable.ParSeq
 
+/** Holder for all the application's models.
+  *
+  * @param sc        spark context
+  * @param appConfig holder for application configurations
+  */
 class Models(sc: SparkContext)(implicit appConfig: AppConfig) extends ModelsHolder {
 
   private val gradientBoosting = () => new GradientBoostingBuilder(sc)
