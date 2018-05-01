@@ -1,6 +1,6 @@
 package edu.twitter.model.api
 
-import edu.twitter.model.Label
+import edu.twitter.model.client.dto.Label
 
 /**
   * A generic interface for sentiment analysis model.

@@ -3,6 +3,7 @@ package edu.twitter.model.client
 import java.nio.charset.Charset
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import edu.twitter.model.client.dto.TweetRequestBody
 import org.apache.commons.io.IOUtils
 import org.apache.http.entity.StringEntity
 import org.junit.runner.RunWith
@@ -14,7 +15,7 @@ class ModelClientSuite extends FunSuite {
 
   test("test jackson") {
     val text = "RT @ChildhoodShows: Before there was Troy Bolton there was Eddie Thomas https://t.co/QlxfSvtojc"
-    val modelRequestBody = new ModelRequestBody(text)
+    val modelRequestBody = new TweetRequestBody(text)
     val objectMapper = new ObjectMapper()
 
     val res = objectMapper.writeValueAsString(modelRequestBody)

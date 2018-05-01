@@ -1,7 +1,7 @@
 package edu.twitter.model.service
 
-import edu.twitter.model.Label
 import edu.twitter.model.api.GenericModel
+import edu.twitter.model.client.dto.Label
 
 class TestGenericModel(val fixedLabel: Label, val name: String) extends GenericModel {
   /**

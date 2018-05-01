@@ -4,7 +4,7 @@ import java.io.File
 
 import edu.twitter.model.impl.gradientboosting.GradientBoostingModel
 import edu.twitter.model.impl.neuralnetwork.NeuralNetworkModel
-import edu.twitter.model.impl.textblob.TextBlobModel
+import edu.twitter.model.impl.textblob.TextBlobService
 import org.apache.spark.streaming.Seconds
 
 /** Application Configuration
@@ -82,7 +82,7 @@ object DevConfig extends AppConfig {
   val wordVectorPath: String = paths.newsModelPath
 
   val modelServicePorts: Map[String, String] =
-    Map(TextBlobModel.name -> "5000",
+    Map(TextBlobService.name -> "5000",
       GradientBoostingModel.name -> "8080",
       NeuralNetworkModel.name -> "8080")
 }
@@ -99,7 +99,7 @@ object ProdConfig extends AppConfig {
   val wordVectorPath: String = paths.googleNewsPath
 
   val modelServicePorts: Map[String, String] =
-    Map(TextBlobModel.name -> "5000",
+    Map(TextBlobService.name -> "5000",
       GradientBoostingModel.name -> "8080",
       NeuralNetworkModel.name -> "8080")
 }

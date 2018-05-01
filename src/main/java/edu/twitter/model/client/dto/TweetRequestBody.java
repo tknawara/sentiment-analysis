@@ -1,4 +1,4 @@
-package edu.twitter.model.client;
+package edu.twitter.model.client.dto;
 
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -7,8 +7,14 @@ import org.codehaus.jackson.annotate.JsonProperty;
  * Class Representing the post
  * request's body.
  */
-public class ModelRequestBody {
-    private final String tweetMsg;
+public class TweetRequestBody {
+    private String tweetMsg;
+
+    /**
+     * Empty args constructor.
+     */
+    public TweetRequestBody() {
+    }
 
     /**
      * Constructor.
@@ -16,7 +22,7 @@ public class ModelRequestBody {
      * @param tweetMsg tweet message to send.
      */
     @JsonCreator
-    public ModelRequestBody(@JsonProperty("tweetMsg") final String tweetMsg) {
+    public TweetRequestBody(@JsonProperty("tweetMsg") final String tweetMsg) {
         this.tweetMsg = tweetMsg;
     }
 
@@ -26,7 +32,7 @@ public class ModelRequestBody {
 
     @Override
     public String toString() {
-        return "ModelRequestBody{"
+        return "TweetRequestBody{"
                 + "tweetMsg='" + tweetMsg
                 + '\''
                 + '}';

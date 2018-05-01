@@ -1,7 +1,7 @@
 package edu.twitter.model.impl.gradientboosting
 
-import edu.twitter.model.Label
 import edu.twitter.model.api.GenericModel
+import edu.twitter.model.client.dto.Label
 import edu.twitter.model.impl.TweetTextFilter
 import org.apache.spark.mllib.feature.HashingTF
 import org.apache.spark.mllib.tree.model.GradientBoostedTreesModel

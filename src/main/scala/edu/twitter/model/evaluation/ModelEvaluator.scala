@@ -2,8 +2,8 @@ package edu.twitter.model.evaluation
 
 import com.typesafe.scalalogging.Logger
 import edu.twitter.config.AppConfig
-import edu.twitter.model.Label
-import edu.twitter.model.client.ModelClient
+import edu.twitter.model.client.classification.ClassificationClient
+import edu.twitter.model.client.dto.Label
 import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -92,7 +92,7 @@ class ModelEvaluator(sc: SparkContext) {
       row <- data
       actualLabel = labelMapping(row.getAs[Double]("label"))
       tweetText = row.getAs[String]("msg")
-      callRes <- ModelClient.callModelService(appConfig.modelServicePorts(modelName), modelName, tweetText)
+      callRes <- ClassificationClient.callModelService(appConfig.modelServicePorts(modelName), modelName, tweetText)
     } yield EvaluatedTrainingTweet(actualLabel, callRes, tweetText)
 
     evaluation
