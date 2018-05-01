@@ -2,11 +2,9 @@ package edu.twitter
 
 import edu.twitter.classification.Classifier
 import edu.twitter.config.{AppConfig, DevConfig, ProdConfig}
+import edu.twitter.holder.Models
 import edu.twitter.index.IndexHandler
 import edu.twitter.model.evaluation.ModelEvaluator
-import edu.twitter.model.impl.gradientboosting.{GradientBoostingBuilder, GradientBoostingModel}
-import edu.twitter.model.impl.neuralnetwork.{NeuralNetworkBuilder, NeuralNetworkModel}
-import edu.twitter.model.impl.textblob.TextBlobService
 import edu.twitter.model.service.ModelService
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.{SparkConf, SparkContext}
@@ -38,18 +36,17 @@ object SentimentAnalyzer {
     conf.set("es.index.auto.create", "true")
     val sc = new SparkContext(conf)
     val ssc = new StreamingContext(sc, appConfig.streamingInterval)
-    val modelNames = List(GradientBoostingModel.name, TextBlobService.name, NeuralNetworkModel.name)
-    val builders = List(new GradientBoostingBuilder(sc), new NeuralNetworkBuilder(sc))
+    val models = new Models(sc)
 
-    val modelService = new ModelService(builders)
+    val modelService = new ModelService(models)
     modelService.start()
 
     if (appConfig.evaluateModels) {
-      new ModelEvaluator(sc).evaluate(modelNames)
+      new ModelEvaluator(sc).evaluate(models.allModelNames)
     }
 
     val classifier = new Classifier(ssc)
-    val classifiedStream = classifier.createClassifiedStream(modelNames)
+    val classifiedStream = classifier.createClassifiedStream(models.allModelNames)
     classifiedStream.foreachRDD(EsSpark.saveToEs(_, indexName))
 
     ssc.start()

@@ -18,9 +18,8 @@ import org.nd4j.linalg.indexing.{INDArrayIndex, NDArrayIndex}
   * @param wordVectors word2vec model used to extract the features
   */
 class NeuralNetworkModel(model: MultiLayerNetwork,
-                         wordVectors: WordVectors) extends GenericModel {
+                         wordVectors: WordVectors, val name: String) extends GenericModel {
 
-  val name: String = NeuralNetworkModel.name
   private val vectorSize = wordVectors.getWordVector(wordVectors.vocab.wordAtIndex(0)).length
 
   /**

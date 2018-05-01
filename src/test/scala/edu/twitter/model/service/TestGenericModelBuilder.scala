@@ -9,5 +9,6 @@ class TestGenericModelBuilder(val fixedLabel: Label, val modelName: String) exte
     *
     * @return an instance of generic model.
     */
-  override def build(): GenericModel = new TestGenericModel(fixedLabel, modelName)
+  override def build(dataPath: String, savePath: String, resultingModelName: String): GenericModel =
+    new TestGenericModel(fixedLabel, modelName)
 }

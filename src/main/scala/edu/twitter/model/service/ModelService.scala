@@ -2,14 +2,15 @@ package edu.twitter.model.service
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import com.fasterxml.jackson.databind.ObjectMapper
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
-import edu.twitter.model.api.GenericModelBuilder
-import spray.json.{DefaultJsonProtocol, RootJsonFormat}
+import com.fasterxml.jackson.databind.ObjectMapper
+import edu.twitter.holder.ModelsHolder
 import org.apache.commons.net.util.Base64
+import spray.json.{DefaultJsonProtocol, RootJsonFormat}
+
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
 /** Representation of the post body */
@@ -24,11 +25,8 @@ object ModelRequestBodySupport extends DefaultJsonProtocol with SprayJsonSupport
 /**
   * Exposes a Rest API for accessing the model.
   *
-  * @param builders Seq holding the recipe for building
-  *                 the models.
   */
-class ModelService(builders: Seq[GenericModelBuilder]) {
-  require(builders.nonEmpty)
+class ModelService(models: ModelsHolder) {
 
   private var bindingFuture: Future[ServerBinding] = _
 
@@ -40,8 +38,7 @@ class ModelService(builders: Seq[GenericModelBuilder]) {
   def start(): Unit = {
     import ModelRequestBodySupport._
 
-    val models = builders.par.map(_.build())
-    val routes = for (model <- models) yield {
+    val routes = for (model <- models.allModels()) yield {
       path(s"${model.name}" / "classify") {
         post {
           entity(as[ModelRequestBody]) { modelRequestBody =>

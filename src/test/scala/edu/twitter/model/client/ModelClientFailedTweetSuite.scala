@@ -1,6 +1,7 @@
 package edu.twitter.model.client
 
 import edu.twitter.config.{AppConfig, DevConfig}
+import edu.twitter.holder.TestModelsHolder
 import edu.twitter.model.client.classification.ClassificationClient
 import edu.twitter.model.client.dto.Label
 import edu.twitter.model.impl.gradientboosting.{GradientBoostingBuilder, GradientBoostingModel}
@@ -22,7 +23,8 @@ class ModelClientFailedTweetSuite extends FunSuite with BeforeAndAfterAll {
     val conf = new SparkConf().setMaster("local[*]").setAppName("ModelEvaluatorTest")
       .set("spark.driver.allowMultipleContexts", "true")
     sc = new SparkContext(conf)
-    modelService = new ModelService(List(new NeuralNetworkBuilder(sc), new GradientBoostingBuilder(sc)))
+    val models = new TestModelsHolder()
+    modelService = new ModelService(models)
     modelService.start()
   }
 

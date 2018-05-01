@@ -21,7 +21,10 @@ class ModelSuite extends FunSuite with BeforeAndAfterAll {
   }
 
   test("model smoke test") {
-    assert(Try(new GradientBoostingBuilder(sc).build()).isSuccess)
+    assert(Try(new GradientBoostingBuilder(sc)
+      .build(appConfig.paths.trainingDataPath,
+        appConfig.paths.savedNeuralNetworkModelPath,
+        "GradientBoosting")).isSuccess)
   }
 
   override def afterAll(): Unit = {

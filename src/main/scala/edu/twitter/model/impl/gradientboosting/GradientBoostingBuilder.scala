@@ -5,7 +5,6 @@ import java.io.File
 import com.typesafe.scalalogging.Logger
 import edu.twitter.config.AppConfig
 import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
-import edu.twitter.model.evaluation.ModelEvaluator
 import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
 import org.apache.spark.mllib.evaluation.MulticlassMetrics
@@ -18,9 +17,9 @@ import org.apache.spark.rdd.RDD
 /**
   * Build and evaluate a gradient boosting model from training and testing data set.
   */
-class GradientBoostingBuilder(sc: SparkContext)(implicit appConfig: AppConfig) extends GenericModelBuilder {
+class GradientBoostingBuilder(sc: SparkContext)
+                             (implicit appConfig: AppConfig) extends GenericModelBuilder {
   private val logger = Logger(classOf[GradientBoostingModel])
-  private val modelPath = appConfig.paths.savedGradientBoostingModelPath
 
   /**
     * Build a GradientBoosting Classification model using a Gradient Boosting model
@@ -35,14 +34,14 @@ class GradientBoostingBuilder(sc: SparkContext)(implicit appConfig: AppConfig) e
     *
     * @return GenericModel
     */
-  def build(): GenericModel = {
-    if (checkModelExist()) {
+  def build(dataPath: String, savePath: String, resultingModelName: String): GenericModel = {
+    if (checkModelExist(savePath)) {
       logger.info("The model is already trained, load it directly")
-      return new GradientBoostingModel(GradientBoostedTreesModel.load(sc, modelPath))
+      return new GradientBoostingModel(GradientBoostedTreesModel.load(sc, savePath), resultingModelName)
     }
 
     val tweetsLoader = new TweetsLoader(sc)
-    val twitterData = new SentimentModelDataCreator(tweetsLoader.loadDataSet(appConfig.paths.trainingDataPath))
+    val twitterData = new SentimentModelDataCreator(tweetsLoader.loadDataSet(dataPath))
     val (trainingSet, testSet) = twitterData.getTrainingAndTestingData()
 
     val boostingStrategy = BoostingStrategy.defaultParams("Classification")
@@ -53,9 +52,9 @@ class GradientBoostingBuilder(sc: SparkContext)(implicit appConfig: AppConfig) e
     val model = GradientBoostedTrees.train(trainingSet, boostingStrategy)
     evaluate(model, trainingSet, "Training")
     evaluate(model, testSet, "Testing")
-    model.save(sc, modelPath)
+    model.save(sc, savePath)
 
-    new GradientBoostingModel(model)
+    new GradientBoostingModel(model, resultingModelName)
   }
 
   /**
@@ -86,8 +85,8 @@ class GradientBoostingBuilder(sc: SparkContext)(implicit appConfig: AppConfig) e
     }
   }
 
-  private def checkModelExist(): Boolean = {
-    val file = new File(modelPath)
+  private def checkModelExist(savePath: String): Boolean = {
+    val file = new File(savePath)
     file.exists()
   }
 }

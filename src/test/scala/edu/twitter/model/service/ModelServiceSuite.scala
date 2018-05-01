@@ -1,6 +1,7 @@
 package edu.twitter.model.service
 
 import edu.twitter.config.{AppConfig, DevConfig}
+import edu.twitter.holder.TestModelsHolder
 import edu.twitter.model.client.classification.ClassificationClient
 import edu.twitter.model.client.dto.Label
 import org.junit.runner.RunWith
@@ -17,7 +18,8 @@ class ModelServiceSuite extends FunSuite with BeforeAndAfterAll {
   private val slowBuilder = new SlowModelBuilder(10000)
 
   override def beforeAll(): Unit = {
-    modelService = new ModelService(List(builderOne, builderTwo, slowBuilder))
+    val models = new TestModelsHolder
+    modelService = new ModelService(models)
     modelService.start()
   }
 
