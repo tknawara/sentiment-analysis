@@ -1,4 +1,4 @@
-package edu.twitter.holder
+package edu.twitter.holder.api
 
 import edu.twitter.model.api.GenericModel
 

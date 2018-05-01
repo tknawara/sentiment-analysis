@@ -1,7 +1,7 @@
 package edu.twitter.model.evaluation
 
 import edu.twitter.config.{AppConfig, DevConfig}
-import edu.twitter.holder.TestModelsHolder
+import edu.twitter.holder.impl.TestModelsHolder
 import edu.twitter.model.impl.gradientboosting.GradientBoostingModel
 import edu.twitter.model.service.ModelService
 import org.apache.spark.{SparkConf, SparkContext}

@@ -2,7 +2,7 @@ package edu.twitter
 
 import edu.twitter.classification.Classifier
 import edu.twitter.config.{AppConfig, DevConfig, ProdConfig}
-import edu.twitter.holder.Models
+import edu.twitter.holder.impl.Models
 import edu.twitter.index.IndexHandler
 import edu.twitter.model.evaluation.ModelEvaluator
 import edu.twitter.model.service.ModelService

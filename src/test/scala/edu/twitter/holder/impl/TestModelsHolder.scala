@@ -1,5 +1,6 @@
-package edu.twitter.holder
+package edu.twitter.holder.impl
 
+import edu.twitter.holder.api.ModelsHolder
 import edu.twitter.model.api.GenericModel
 import edu.twitter.model.client.dto.Label
 import edu.twitter.model.service.TestGenericModel

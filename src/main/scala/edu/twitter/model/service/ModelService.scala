@@ -7,7 +7,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import com.fasterxml.jackson.databind.ObjectMapper
-import edu.twitter.holder.ModelsHolder
+import edu.twitter.holder.api.ModelsHolder
 import org.apache.commons.net.util.Base64
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 

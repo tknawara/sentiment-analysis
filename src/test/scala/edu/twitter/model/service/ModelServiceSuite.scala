@@ -1,7 +1,7 @@
 package edu.twitter.model.service
 
 import edu.twitter.config.{AppConfig, DevConfig}
-import edu.twitter.holder.TestModelsHolder
+import edu.twitter.holder.impl.TestModelsHolder
 import edu.twitter.model.client.classification.ClassificationClient
 import edu.twitter.model.client.dto.Label
 import org.junit.runner.RunWith
