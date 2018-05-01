@@ -7,7 +7,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfterAll, FunSuite, Ignore}
 
-//@Ignore
+@Ignore
 @RunWith(classOf[JUnitRunner])
 class ModelServiceSuite extends FunSuite with BeforeAndAfterAll {
   @transient private var modelService: ModelService = _
