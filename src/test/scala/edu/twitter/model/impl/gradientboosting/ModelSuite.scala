@@ -24,7 +24,7 @@ class ModelSuite extends FunSuite with BeforeAndAfterAll {
     assert(Try(new GradientBoostingBuilder(sc)
       .build(appConfig.paths.trainingDataPath,
         appConfig.paths.savedNeuralNetworkModelPath,
-        "GradientBoosting")).isSuccess)
+        GradientBoostingModel.name)).isSuccess)
   }
 
   override def afterAll(): Unit = {
