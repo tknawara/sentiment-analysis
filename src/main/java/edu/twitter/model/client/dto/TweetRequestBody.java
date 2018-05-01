@@ -8,7 +8,13 @@ import org.codehaus.jackson.annotate.JsonProperty;
  * request's body.
  */
 public class TweetRequestBody {
-    private final String tweetMsg;
+    private String tweetMsg;
+
+    /**
+     * Empty args constructor.
+     */
+    public TweetRequestBody() {
+    }
 
     /**
      * Constructor.
