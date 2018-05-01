@@ -66,6 +66,16 @@ class ModelEvaluator(sc: SparkContext) {
   }
 
   /**
+    * Evaluate the given Seq of models with
+    * and without correction.
+    *
+    * @param models target models for evaluation
+    */
+  def evaluateWithCorrection(models: Seq[String])(implicit appConfig: AppConfig): Unit = {
+    models.foreach(evaluateWithCorrection)
+  }
+
+  /**
     * Show how the model will perform against a
     * prelabeled data.
     *
