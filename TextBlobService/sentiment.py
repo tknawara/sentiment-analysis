@@ -32,7 +32,7 @@ def spelling_correct():
     text_blob = TextBlob(decoded_tweet)
     correction = text_blob.correct()
     encoded_tweet = encode(str(correction))
-    return encoded_tweet
+    return jsonify({'tweetMsg': encoded_tweet.decode('utf-8')})
 
 def decode(tweet):
     """decode a tweet"""
