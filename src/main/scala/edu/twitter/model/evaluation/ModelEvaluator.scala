@@ -5,6 +5,7 @@ import edu.twitter.config.AppConfig
 import edu.twitter.model.client.classification.ClassificationClient
 import edu.twitter.model.client.dto.Label
 import edu.twitter.model.impl.TweetsLoader
+import edu.twitter.service.SpellingCorrectionService
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
@@ -38,6 +39,11 @@ case class EvaluatedTrainingTweet(actualLabel: Label, modelPrediction: Label, tw
   * by the model, it holds both the actual and model labels.
   * used to be saved in elasticsearch. */
 case class EvaluatedTrainingTweetElasticRepresentation(actualLabel: Double, modelPrediction: Double, tweetText: String)
+
+/** Representation of the evaluation results based on
+  * spelling correction. */
+case class EvaluationWithCorrection(actualLabel: Double, beforeLabel: Double,
+                                    afterLabel: Double, beforeTweet: String, afterTweet: String)
 
 
 /** Responsible for evaluating a model based on a given
@@ -77,6 +83,45 @@ class ModelEvaluator(sc: SparkContext) {
       } yield EvaluatedTrainingTweetElasticRepresentation(actualLabel, modelPredictedLabel, evaluatedTweet.tweetText)
       EsSpark.saveToEs(elasticEvaluatedData, s"${modelName.toLowerCase}/performance")
     }
+  }
+
+  /**
+    * Show the effect of spelling correction over the model's
+    * performance.
+    *
+    * @param modelName name of the target model for evaluation
+    * @param appConfig configuration parameters holder
+    */
+  def evaluateWithCorrection(modelName: String)(implicit appConfig: AppConfig): Unit = {
+    val tweetsLoader = new TweetsLoader(sc)
+    val evaluation = evaluateDataWithCorrection(modelName, tweetsLoader.loadDataSet(appConfig.paths.validationDataPath))
+    if (appConfig.persistEvaluation) {
+      EsSpark.saveToEs(evaluation, s"${modelName.toLowerCase}/correction")
+    }
+  }
+
+  /**
+    * Evaluate the model before and after spelling correction.
+    *
+    * @param modelName name of target model for evaluation
+    * @param data      evaluation data
+    * @param appConfig configuration parameter holder
+    * @return model evaluation
+    */
+  private def evaluateDataWithCorrection(modelName: String, data: RDD[Row])
+                                        (implicit appConfig: AppConfig): RDD[EvaluationWithCorrection] = {
+    val evaluation = for {
+      row <- data
+      actualLabel = row.getAs[Double]("label")
+      tweetText = row.getAs[String]("msg")
+      beforeCorrection <- ClassificationClient.callModelService(appConfig.modelServicePorts(modelName), modelName, tweetText)
+      correctTweet <- SpellingCorrectionService.correctSpelling(tweetText)
+      afterCorrection <- ClassificationClient.callModelService(appConfig.modelServicePorts(modelName), modelName, correctTweet)
+      beforeLabel = beforeCorrection.getKibanaRepresentation
+      afterLabel = afterCorrection.getKibanaRepresentation
+    } yield EvaluationWithCorrection(actualLabel, beforeLabel, afterLabel, tweetText, correctTweet)
+
+    evaluation
   }
 
   /**
