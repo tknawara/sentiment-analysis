@@ -56,6 +56,8 @@ dependencies {
     compile group: 'commons-codec', name: 'commons-codec', version: '1.11'
     compile group: 'org.scala-lang.modules', name: 'scala-java8-compat_2.11', version: '0.8.0'
 
+    compile group: 'org.languagetool', name: 'languagetool-core', version: '4.1'
+    compile group: 'org.languagetool', name: 'language-en', version: '4.1'
 
     testCompile group: 'org.scalatest', name: 'scalatest_2.11', version: '3.0.5'
     testCompile group: 'org.spockframework', name: 'spock-core', version: '1.1-groovy-2.4'
