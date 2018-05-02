@@ -8,9 +8,9 @@ import org.scalatest.junit.JUnitRunner
 class SpellingCorrectServiceSuite extends FunSuite {
 
   test("should correct spelling mistakes in tweet") {
-    val tweetMessage = "I havv a goood spelling"
+    val tweetMessage = "I hav a goood spelling"
     val correctSpelling = SpellingCorrectionService.correctSpelling(tweetMessage)
-    val correct = "I have a good spelling"
+    val correct = "I had a good spelling"
     assert(correctSpelling == correct)
   }
 }

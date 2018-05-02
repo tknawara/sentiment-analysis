@@ -41,7 +41,7 @@ public final class SpellingCorrectionService {
             int idx = 0;
             for (int i = 0; i < tweetMessage.length(); ) {
                 if (idx < matches.size() && i == matches.get(idx).getFromPos()) {
-                    i = matches.get(idx).getToPos() + 1;
+                    i = matches.get(idx).getToPos();
                     tweetStringBuilder.append(matches.get(idx).getSuggestedReplacements().get(0));
                     ++idx;
                 } else {
