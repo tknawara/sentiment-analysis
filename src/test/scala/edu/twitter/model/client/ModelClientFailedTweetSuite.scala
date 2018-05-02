@@ -10,8 +10,8 @@ import edu.twitter.model.impl.neuralnetwork.{NeuralNetworkBuilder, NeuralNetwork
 import edu.twitter.model.service.ModelService
 import org.apache.spark.{SparkConf, SparkContext}
 import org.junit.runner.RunWith
-import org.scalatest.{BeforeAndAfterAll, FunSuite, Ignore}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{BeforeAndAfterAll, FunSuite, Ignore}
 
 import scala.collection.GenSeq
 
@@ -49,9 +49,11 @@ class ModelClientFailedTweetSuite extends FunSuite with BeforeAndAfterAll {
 
   test("test jackson") {
     val text = "RT @ChildhoodShows: Before there was Troy Bolton there was Eddie Thomas https://t.co/QlxfSvtojc"
-    val resOne = ClassificationClient.callModelService(
-      appConfig.modelServicePorts(NeuralNetworkModel.name), NeuralNetworkModel.name, text)
-    assert(resOne.get == Label.HAPPY)
+    (1 to 1000).par.foreach { _ =>
+      val resOne = ClassificationClient.callModelService(
+        appConfig.modelServicePorts(NeuralNetworkModel.name), NeuralNetworkModel.name, text)
+      assert(resOne.get == Label.SAD)
+    }
 
     val resTwo = ClassificationClient.callModelService(
       appConfig.modelServicePorts(GradientBoostingModel.name), GradientBoostingModel.name, text)
