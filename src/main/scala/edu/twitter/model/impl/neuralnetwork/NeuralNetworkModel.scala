@@ -32,7 +32,9 @@ class NeuralNetworkModel(model: MultiLayerNetwork,
   override def getLabel(tweetText: String): Label = {
     val filteredTweet = TweetTextFilter.filterTweet(tweetText)
     val features = loadFeaturesFromString(filteredTweet)
-    val networkOutput = model.output(features)
+    val networkOutput = synchronized {
+      model.output(features)
+    }
     val timeSeriesLength = networkOutput.size(2)
     val probabilities = networkOutput.get(NDArrayIndex.point(0), NDArrayIndex.all, NDArrayIndex.point(timeSeriesLength - 1))
     val happy = probabilities.getDouble(0)
