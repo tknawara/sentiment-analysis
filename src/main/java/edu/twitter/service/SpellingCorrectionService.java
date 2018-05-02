@@ -40,7 +40,7 @@ public final class SpellingCorrectionService {
                             tweetStringBuilder.replace(matcher.getFromPos(),
                                     matcher.getToPos(), matcher.getSuggestedReplacements().get(0)));
             return Option.apply(tweetStringBuilder.toString());
-        } catch (IOException e) {
+        } catch (final Exception e) {
             LOGGER.warn("error in correcting tweet with message {} {}", tweetMessage, e.getMessage());
         }
         return Option.empty();
