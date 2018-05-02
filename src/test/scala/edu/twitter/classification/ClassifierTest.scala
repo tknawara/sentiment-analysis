@@ -1,6 +1,7 @@
 package edu.twitter.classification
 
 import edu.twitter.config.{AppConfig, DevConfig}
+import edu.twitter.holder.impl.TestModelsHolder
 import edu.twitter.model.impl.gradientboosting.{GradientBoostingBuilder, GradientBoostingModel}
 import edu.twitter.model.service.ModelService
 import org.apache.spark.streaming.{Seconds, StreamingContext}
@@ -14,7 +15,8 @@ object ClassifierTest {
     val sc = new SparkContext(conf)
     val ssc = new StreamingContext(sc, appConfig.streamingInterval)
 
-    val modelService = new ModelService(List(new GradientBoostingBuilder(sc)))
+    val models = new TestModelsHolder
+    val modelService = new ModelService(models)
     modelService.start()
 
     val classifier = new Classifier(ssc)

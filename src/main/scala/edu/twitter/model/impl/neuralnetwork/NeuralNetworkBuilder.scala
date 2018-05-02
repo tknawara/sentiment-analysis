@@ -5,7 +5,6 @@ import java.io._
 import com.typesafe.scalalogging.Logger
 import edu.twitter.config.AppConfig
 import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
-import edu.twitter.model.evaluation.ModelEvaluator
 import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
 import org.deeplearning4j.eval.Evaluation
@@ -24,7 +23,6 @@ import org.nd4j.linalg.lossfunctions.LossFunctions
 class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) extends GenericModelBuilder {
 
   private val logger = Logger(classOf[NeuralNetworkBuilder])
-  private val modelPath = appConfig.paths.savedNeuralNetworkModelPath
 
   //val wordVectors = WordVectorSerializer.loadTxtVectors(new File(WORD_VECTORS_PATH))
   private val wordVectors = WordVectorSerializer.readWord2VecModel(new File(appConfig.wordVectorPath))
@@ -36,11 +34,11 @@ class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) exte
     *
     * @return an instance of generic model.
     */
-  override def build(): GenericModel = {
+  override def build(dataPath: String, savePath: String, resultingModelName: String): GenericModel = {
 
-    if (checkModelExist()) {
-      val model = ModelSerializer.restoreMultiLayerNetwork(modelPath)
-      return new NeuralNetworkModel(model, wordVectors)
+    if (checkModelExist(savePath)) {
+      val model = ModelSerializer.restoreMultiLayerNetwork(savePath)
+      return new NeuralNetworkModel(model, wordVectors, resultingModelName)
     }
 
     val batchSize = 256 //Number of examples in each minibatch
@@ -48,7 +46,7 @@ class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) exte
     val truncateReviewsToLength = 280 //Truncate reviews with length (# words) greater than this
 
     //DataSetIterators for training and testing respectively
-    val data = new TweetsLoader(sc).loadDataSet(appConfig.paths.trainingDataPath)
+    val data = new TweetsLoader(sc).loadDataSet(dataPath)
     val Array(trainData, testData) = data.randomSplit(Array(0.85, 0.15))
     val train = new DataIterator(trainData, wordVectors, batchSize, truncateReviewsToLength)
     val test = new DataIterator(testData, wordVectors, batchSize, truncateReviewsToLength)
@@ -67,9 +65,9 @@ class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) exte
       evaluate(net, test, "Testing", i + 1)
     }
 
-    ModelSerializer.writeModel(net, modelPath, true)
+    ModelSerializer.writeModel(net, savePath, true)
 
-    new NeuralNetworkModel(net, wordVectors)
+    new NeuralNetworkModel(net, wordVectors, resultingModelName)
   }
 
   /**
@@ -119,8 +117,8 @@ class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) exte
     logger.info(evaluation.stats)
   }
 
-  private def checkModelExist(): Boolean = {
-    val file = new File(modelPath)
+  private def checkModelExist(savePath: String): Boolean = {
+    val file = new File(savePath)
     file.exists()
   }
 }

@@ -2,8 +2,6 @@ package edu.twitter.config
 
 import java.io.File
 
-import edu.twitter.model.impl.gradientboosting.GradientBoostingModel
-import edu.twitter.model.impl.neuralnetwork.NeuralNetworkModel
 import edu.twitter.model.impl.textblob.TextBlobService
 import org.apache.spark.streaming.Seconds
 
@@ -43,6 +41,9 @@ sealed trait AppConfig extends Serializable {
   /** Get Model Service Port From Model Name */
   def modelServicePorts: Map[String, String]
 
+  /** Size of bag of words for GraidentBoosting */
+  def bagOfWordsSize: Int
+
   /** Used for configuring the streaming
     * window interval. */
   val streamingInterval = Seconds(10)
@@ -55,10 +56,13 @@ sealed trait AppConfig extends Serializable {
 object DataPaths extends Serializable {
   lazy val savedNeuralNetworkModelPath: String = getAbsolutePath("saved-models") + File.separator + "NeuralNetworkModel.net"
   lazy val savedGradientBoostingModelPath: String = getAbsolutePath("saved-models") + File.separator + "GradientBoosting"
+  lazy val savedNeuralNetworkModelCorrectPath: String = getAbsolutePath("saved-models") + File.separator + "NeuralNetworkModelCorrect.net"
+  lazy val savedGradientBoostingModelCorrectPath: String = getAbsolutePath("saved-models") + File.separator + "GradientBoostingCorrect"
   lazy val newsModelPath: String = getAbsolutePath("NewsModel.txt")
   lazy val googleNewsPath: String = getAbsolutePath("GoogleNews-vectors-negative300.bin.gz")
   lazy val trainingDataPath: String = getAbsolutePath("labeled-tweets")
-  lazy val validationDataPath: String = getAbsolutePath("labeled-tweets")
+  lazy val correctSpellingTrainingDataPath: String = getAbsolutePath("correct-tweets")
+  lazy val validationDataPath: String = getAbsolutePath("validation-tweets")
 
   /**
     *
@@ -79,12 +83,11 @@ object DevConfig extends AppConfig {
   val persistEvaluation = false
   val gradientIterations = 20
   val gradientDepth = 5
+  val bagOfWordsSize = 2000
   val wordVectorPath: String = paths.newsModelPath
 
   val modelServicePorts: Map[String, String] =
-    Map(TextBlobService.name -> "5000",
-      GradientBoostingModel.name -> "8080",
-      NeuralNetworkModel.name -> "8080")
+    Map(TextBlobService.name -> "5000").withDefaultValue("8080")
 }
 
 /** Representation of the production
@@ -96,10 +99,9 @@ object ProdConfig extends AppConfig {
   val persistEvaluation = true
   val gradientIterations = 26
   val gradientDepth = 6
+  val bagOfWordsSize = 2000
   val wordVectorPath: String = paths.googleNewsPath
 
   val modelServicePorts: Map[String, String] =
-    Map(TextBlobService.name -> "5000",
-      GradientBoostingModel.name -> "8080",
-      NeuralNetworkModel.name -> "8080")
+    Map(TextBlobService.name -> "5000").withDefaultValue("8080")
 }

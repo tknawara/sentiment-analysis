@@ -55,7 +55,7 @@ public final class GenericClient {
             final T modelServiceResponse =
                     MAPPER.readValue(IOUtils.toString(responseEntity.getContent(), Charset.defaultCharset()), valueType);
             return Option.apply(modelServiceResponse);
-        } catch (final IOException e) {
+        } catch (final Exception e) {
             LOGGER.warn("Request body: {}", requestBody);
             LOGGER.warn("Error in calling the model service: {}", e);
             return Option.empty();
