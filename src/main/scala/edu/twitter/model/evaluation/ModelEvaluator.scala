@@ -105,9 +105,7 @@ class ModelEvaluator(sc: SparkContext) {
   def evaluateWithCorrection(modelName: String)(implicit appConfig: AppConfig): Unit = {
     val tweetsLoader = new TweetsLoader(sc)
     val evaluation = evaluateDataWithCorrection(modelName, tweetsLoader.loadDataSet(appConfig.paths.validationDataPath))
-    if (appConfig.persistEvaluation) {
-      EsSpark.saveToEs(evaluation, s"${modelName.toLowerCase}/correction")
-    }
+    EsSpark.saveToEs(evaluation, s"${modelName.toLowerCase}/correction")
   }
 
   /**
@@ -120,12 +118,13 @@ class ModelEvaluator(sc: SparkContext) {
     */
   private def evaluateDataWithCorrection(modelName: String, data: RDD[Row])
                                         (implicit appConfig: AppConfig): RDD[EvaluationWithCorrection] = {
+    val labelMapping = Map(0.0 -> Label.SAD, 1.0 -> Label.HAPPY)
     val evaluation = for {
       row <- data
-      actualLabel = row.getAs[Double]("label")
+      actualLabel = labelMapping(row.getAs[Double]("label")).getKibanaRepresentation
       tweetText = row.getAs[String]("msg")
       beforeCorrection <- ClassificationClient.callModelService(appConfig.modelServicePorts(modelName), modelName, tweetText)
-      correctTweet <- SpellingCorrectionService.correctSpelling(tweetText)
+      correctTweet = SpellingCorrectionService.correctSpelling(tweetText)
       afterCorrection <- ClassificationClient.callModelService(appConfig.modelServicePorts(modelName), modelName, correctTweet)
       beforeLabel = beforeCorrection.getKibanaRepresentation
       afterLabel = afterCorrection.getKibanaRepresentation

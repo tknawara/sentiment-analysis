@@ -62,7 +62,7 @@ object DataPaths extends Serializable {
   lazy val googleNewsPath: String = getAbsolutePath("GoogleNews-vectors-negative300.bin.gz")
   lazy val trainingDataPath: String = getAbsolutePath("labeled-tweets")
   lazy val correctSpellingTrainingDataPath: String = getAbsolutePath("correct-tweets")
-  lazy val validationDataPath: String = getAbsolutePath("labeled-tweets")
+  lazy val validationDataPath: String = getAbsolutePath("validation-tweets")
 
   /**
     *
