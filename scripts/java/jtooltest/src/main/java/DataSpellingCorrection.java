@@ -1,66 +1,52 @@
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.languagetool.JLanguageTool;
-import org.languagetool.rules.RuleMatch;
 import org.languagetool.language.AmericanEnglish;
+import org.languagetool.rules.RuleMatch;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class DataSpellingCorrection {
 
-    static JLanguageTool langTool = new JLanguageTool(new AmericanEnglish());
+    private static PrintWriter printWriter;
+    private static JLanguageTool langTool = new JLanguageTool(new AmericanEnglish());
+    private static List<String> buffer = new ArrayList<>();
+    private static int idx = 0;
 
     public static void main(String[] args) throws IOException {
+        printWriter = new PrintWriter(new File("correct-tweets/tweet" + System.currentTimeMillis() + ".json"));
         correctTweets();
     }
 
     private static void correctTweets() throws IOException {
-        Stream<List<Tweet>> listStream = Files.walk(Paths.get("labeled-tweets"))
+        Files.walk(Paths.get("labeled-tweets"))
                 .peek(System.out::println)
                 .filter(p -> !p.toString().equals("labeled-tweets"))
                 .filter(p -> !p.toString().equals("labeled-tweets/instructions.txt"))
-                .map(p -> readFile(p.toString())
-                        .stream()
-                        .map(Main::correct)
-                        .filter(Optional::isPresent)
-                        .map(Optional::get)
-                        .collect(Collectors.toList()));
+                .filter(p -> !p.toString().equals("labeled-tweets/.DS_Store"))
+                .forEach(p -> readFile(p.toString()));
+        printWriter.close();
 
-        listStream.forEach(Main::writeToFile);
     }
 
-    private static void writeToFile(List<Tweet> tweets) {
+    private static void writeToFile(Tweet tweet) {
         ObjectMapper objectMapper = new ObjectMapper();
-        List<String> collect = tweets.stream()
-                .map(p -> {
-                    try {
-                        return objectMapper.writeValueAsString(p);
-                    } catch (JsonProcessingException e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
         try {
-            PrintWriter printWriter = new PrintWriter(new File("correct-tweets/tweet" + System.currentTimeMillis() + ".json"));
-            for (String s : collect) {
-                printWriter.println(s);
+            buffer.add(objectMapper.writeValueAsString(tweet));
+            if(idx++ % 1000 == 0) {
+                System.out.println(idx);
+                for(String s: buffer) {
+                    printWriter.println(s);
+                }
+                buffer.clear();
             }
-            printWriter.close();
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -68,11 +54,21 @@ public class DataSpellingCorrection {
     private static Optional<Tweet> correct(Tweet tweet) {
         String input = tweet.getMsg();
         try {
-            List<RuleMatch> matches = langTool.check(input);
-            StringBuilder stringBuilder = new StringBuilder(input);
-            for (RuleMatch match : matches) {
-                if (!match.getSuggestedReplacements().isEmpty()) {
-                    stringBuilder.replace(match.getFromPos(), match.getToPos(), match.getSuggestedReplacements().get(0));
+            List<RuleMatch> matches = langTool.check(input)
+                    .stream()
+                    .filter(l -> !l.getSuggestedReplacements().isEmpty())
+                    .sorted(Comparator.comparingInt(RuleMatch::getFromPos))
+                    .collect(Collectors.toList());
+            StringBuilder stringBuilder = new StringBuilder();
+            int idx = 0;
+            for (int i = 0; i < input.length(); ) {
+                if (idx < matches.size() && i == matches.get(idx).getFromPos()) {
+                    i = matches.get(idx).getToPos() + 1;
+                    stringBuilder.append(matches.get(idx).getSuggestedReplacements().get(0));
+                    ++idx;
+                } else {
+                    stringBuilder.append(input.charAt(i));
+                    ++i;
                 }
             }
             return Optional.of(new Tweet(stringBuilder.toString(), tweet.getLabel()));
@@ -82,23 +78,25 @@ public class DataSpellingCorrection {
         return Optional.empty();
     }
 
-    private static List<Tweet> readFile(String fileName) {
-        ObjectMapper objectMapper = new ObjectMapper();
+    private static void readFile(String fileName) {
         try {
-            return Files.lines(Paths.get(fileName))
-                    .map(line -> {
-                        try {
-                            return objectMapper.readValue(line, Tweet.class);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        return null;
-                    }).filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName)));
+            reader.lines().forEach(l -> {
+                Optional<Tweet> tweet = correct(parseCSV(l));
+                tweet.ifPresent(DataSpellingCorrection::writeToFile);
+            });
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return Collections.emptyList();
+    }
+
+    private static Tweet parseCSV(String line) {
+        Pattern pattern = Pattern.compile("\"(.+)\",\".+\",\".+\",\".+\",\".+\",\"(.+)\"");
+        Matcher matcher = pattern.matcher(line);
+        if (matcher.find()) {
+            return new Tweet(matcher.group(2), Double.parseDouble(matcher.group(1)));
+        }
+        return null;
     }
 }
 
