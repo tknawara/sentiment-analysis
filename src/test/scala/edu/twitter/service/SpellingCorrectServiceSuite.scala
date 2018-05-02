@@ -13,4 +13,11 @@ class SpellingCorrectServiceSuite extends FunSuite {
     val correct = "I had a good spelling"
     assert(correctSpelling == correct)
   }
+
+  test("should handle replacing a shorter word with a longer one") {
+    val tweetMessage = "I hd a good speling"
+    val correctSpelling = SpellingCorrectionService.correctSpelling(tweetMessage)
+    val correct = "I had a good spelling"
+    assert(correctSpelling == correct)
+  }
 }
