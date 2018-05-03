@@ -6,18 +6,25 @@ import org.languagetool.rules.RuleMatch;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class DataSpellingCorrection {
+
+    private final static int BUFFER_MAX_SIZE = 1000;
+    private final static int HAPPY_SAD_SIZE = 30000;
 
     private static PrintWriter printWriter;
     private static JLanguageTool langTool = new JLanguageTool(new AmericanEnglish());
     private static List<String> buffer = new ArrayList<>();
-    private static int idx = 0;
+    private static int sadCount = 0;
+    private static int happyCount = 0;
+    private static int progressCount = 0;
 
     public static void main(String[] args) throws IOException {
         printWriter = new PrintWriter(new File("correct-tweets/tweet" + System.currentTimeMillis() + ".json"));
@@ -39,9 +46,9 @@ public class DataSpellingCorrection {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             buffer.add(objectMapper.writeValueAsString(tweet));
-            if(idx++ % 1000 == 0) {
-                System.out.println(idx);
-                for(String s: buffer) {
+            if (buffer.size() == BUFFER_MAX_SIZE) {
+                System.out.println(progressCount);
+                for (String s : buffer) {
                     printWriter.println(s);
                 }
                 buffer.clear();
@@ -63,7 +70,7 @@ public class DataSpellingCorrection {
             int idx = 0;
             for (int i = 0; i < input.length(); ) {
                 if (idx < matches.size() && i == matches.get(idx).getFromPos()) {
-                    i = matches.get(idx).getToPos() + 1;
+                    i = matches.get(idx).getToPos();
                     stringBuilder.append(matches.get(idx).getSuggestedReplacements().get(0));
                     ++idx;
                 } else {
@@ -82,8 +89,11 @@ public class DataSpellingCorrection {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName)));
             reader.lines().forEach(l -> {
-                Optional<Tweet> tweet = correct(parseCSV(l));
-                tweet.ifPresent(DataSpellingCorrection::writeToFile);
+                Tweet tweet = parseCSV(l);
+                if (tweet != null) {
+                    Optional<Tweet> correctedTweet = correct(tweet);
+                    correctedTweet.ifPresent(DataSpellingCorrection::writeToFile);
+                }
             });
         } catch (IOException e) {
             e.printStackTrace();
@@ -91,6 +101,9 @@ public class DataSpellingCorrection {
     }
 
     private static Tweet parseCSV(String line) {
+        ++progressCount;
+        if (line.charAt(1) == '0' && sadCount++ >= HAPPY_SAD_SIZE) return null;
+        if (line.charAt(1) == '4' && happyCount++ >= HAPPY_SAD_SIZE) return null;
         Pattern pattern = Pattern.compile("\"(.+)\",\".+\",\".+\",\".+\",\".+\",\"(.+)\"");
         Matcher matcher = pattern.matcher(line);
         if (matcher.find()) {
@@ -109,7 +122,7 @@ class Tweet {
 
     public Tweet(String msg, double label) {
         this.msg = msg;
-        this.label = label;
+        this.label = label == 0 ? 0 : 1;
     }
 
     public String getMsg() {
