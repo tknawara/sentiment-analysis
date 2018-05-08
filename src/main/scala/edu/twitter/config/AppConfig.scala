@@ -10,7 +10,7 @@ import org.deeplearning4j.models.word2vec.Word2Vec
 /** Application Configuration
   * we can add any configurations here to
   * be used by all parts of the application. */
-sealed trait AppConfig extends Serializable {
+sealed trait AppConfig {
 
   /** defines wither we are running
     * in production or not. */
@@ -58,7 +58,7 @@ sealed trait AppConfig extends Serializable {
 
 /** Holder for all paths used in the
   * Application. */
-object DataPaths extends Serializable {
+object DataPaths {
   lazy val savedNeuralNetworkModelPath: String = getAbsolutePath("saved-models") + File.separator + "NeuralNetworkModel.net"
   lazy val savedGradientBoostingModelPath: String = getAbsolutePath("saved-models") + File.separator + "GradientBoosting"
   lazy val savedNeuralNetworkModelCorrectPath: String = getAbsolutePath("saved-models") + File.separator + "NeuralNetworkModelCorrect.net"

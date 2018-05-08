@@ -53,7 +53,7 @@ case class EvaluationWithCorrection(actualLabel: Double, beforeLabel: Double,
   *
   * @param sc spark context.
   */
-class ModelEvaluator(sc: SparkContext) {
+class ModelEvaluator(sc: SparkContext)(implicit appConfig: AppConfig) {
   private val logger = Logger(classOf[ModelEvaluator])
 
   /**
@@ -61,7 +61,7 @@ class ModelEvaluator(sc: SparkContext) {
     *
     * @param models target models for evaluation
     */
-  def evaluate(models: Seq[String])(implicit appConfig: AppConfig): Unit = {
+  def evaluate(models: Seq[String]): Unit = {
     models.foreach(evaluate)
   }
 
@@ -71,7 +71,7 @@ class ModelEvaluator(sc: SparkContext) {
     *
     * @param models target models for evaluation
     */
-  def evaluateWithCorrection(models: Seq[String])(implicit appConfig: AppConfig): Unit = {
+  def evaluateWithCorrection(models: Seq[String]): Unit = {
     models.foreach(evaluateWithCorrection)
   }
 
@@ -81,7 +81,7 @@ class ModelEvaluator(sc: SparkContext) {
     *
     * @param modelName name of the target model for evaluation.
     */
-  def evaluate(modelName: String)(implicit appConfig: AppConfig): Unit = {
+  def evaluate(modelName: String): Unit = {
     val tweetsLoader = new TweetsLoader(sc)
     val evaluation = evaluateData(modelName, tweetsLoader.loadDataSet(appConfig.paths.validationDataPath))
     performEvaluationAnalysis(evaluation)
@@ -100,9 +100,8 @@ class ModelEvaluator(sc: SparkContext) {
     * performance.
     *
     * @param modelName name of the target model for evaluation
-    * @param appConfig configuration parameters holder
     */
-  def evaluateWithCorrection(modelName: String)(implicit appConfig: AppConfig): Unit = {
+  def evaluateWithCorrection(modelName: String): Unit = {
     val tweetsLoader = new TweetsLoader(sc)
     val evaluation = evaluateDataWithCorrection(modelName, tweetsLoader.loadDataSet(appConfig.paths.validationDataPath))
     EsSpark.saveToEs(evaluation, s"${modelName.toLowerCase}/correction")
@@ -113,19 +112,18 @@ class ModelEvaluator(sc: SparkContext) {
     *
     * @param modelName name of target model for evaluation
     * @param data      evaluation data
-    * @param appConfig configuration parameter holder
     * @return model evaluation
     */
-  private def evaluateDataWithCorrection(modelName: String, data: RDD[Row])
-                                        (implicit appConfig: AppConfig): RDD[EvaluationWithCorrection] = {
+  private def evaluateDataWithCorrection(modelName: String, data: RDD[Row]): RDD[EvaluationWithCorrection] = {
     val labelMapping = Map(0.0 -> Label.SAD, 1.0 -> Label.HAPPY)
+    val modelPort = appConfig.modelServicePorts(modelName)
     val evaluation = for {
       row <- data
       actualLabel = labelMapping(row.getAs[Double]("label")).getKibanaRepresentation
       tweetText = row.getAs[String]("msg")
-      beforeCorrection <- ClassificationClient.callModelService(appConfig.modelServicePorts(modelName), modelName, tweetText)
+      beforeCorrection <- ClassificationClient.callModelService(modelPort, modelName, tweetText)
       correctTweet = SpellingCorrectionService.correctSpelling(tweetText)
-      afterCorrection <- ClassificationClient.callModelService(appConfig.modelServicePorts(modelName), modelName, correctTweet)
+      afterCorrection <- ClassificationClient.callModelService(modelPort, modelName, correctTweet)
       beforeLabel = beforeCorrection.getKibanaRepresentation
       afterLabel = afterCorrection.getKibanaRepresentation
     } yield EvaluationWithCorrection(actualLabel, beforeLabel, afterLabel, tweetText, correctTweet)
@@ -140,13 +138,14 @@ class ModelEvaluator(sc: SparkContext) {
     * @param data      evaluation data
     * @return rdd of `EvaluatedTrainingTweet`
     */
-  private def evaluateData(modelName: String, data: RDD[Row])(implicit appConfig: AppConfig): RDD[EvaluatedTrainingTweet] = {
+  private def evaluateData(modelName: String, data: RDD[Row]): RDD[EvaluatedTrainingTweet] = {
     val labelMapping = Map(0.0 -> Label.SAD, 1.0 -> Label.HAPPY)
+    val modelPort = appConfig.modelServicePorts(modelName)
     val evaluation = for {
       row <- data
       actualLabel = labelMapping(row.getAs[Double]("label"))
       tweetText = row.getAs[String]("msg")
-      callRes <- ClassificationClient.callModelService(appConfig.modelServicePorts(modelName), modelName, tweetText)
+      callRes <- ClassificationClient.callModelService(modelPort, modelName, tweetText)
     } yield EvaluatedTrainingTweet(actualLabel, callRes, tweetText)
 
     evaluation
