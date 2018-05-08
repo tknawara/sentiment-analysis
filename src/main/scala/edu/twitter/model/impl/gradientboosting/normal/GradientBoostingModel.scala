@@ -1,4 +1,4 @@
-package edu.twitter.model.impl.gradientboosting
+package edu.twitter.model.impl.gradientboosting.normal
 
 import edu.twitter.config.AppConfig
 import edu.twitter.model.api.GenericModel
@@ -12,8 +12,8 @@ import org.apache.spark.mllib.tree.model.GradientBoostedTreesModel
   *
   * @param model actual model
   */
-class GradientBoostingModel(model: GradientBoostedTreesModel, val name: String)
-                           (implicit appConfig: AppConfig) extends GenericModel {
+class GradientBoostingModel(model: GradientBoostedTreesModel)(implicit appConfig: AppConfig) extends GenericModel {
+  val name: String = GradientBoostingModel.name
   private val hashingTF = new HashingTF(appConfig.bagOfWordsSize)
 
   override def getLabel(tweetText: String): Label = {

@@ -5,8 +5,8 @@ import edu.twitter.holder.api.ModelsHolder
 import edu.twitter.model.api.GenericModel
 import edu.twitter.model.client.classification.ClassificationClient
 import edu.twitter.model.client.dto.Label
-import edu.twitter.model.impl.gradientboosting.{GradientBoostingBuilder, GradientBoostingModel}
-import edu.twitter.model.impl.neuralnetwork.{NeuralNetworkBuilder, NeuralNetworkModel}
+import edu.twitter.model.impl.gradientboosting.normal.{GradientBoostingBuilder, GradientBoostingModel}
+import edu.twitter.model.impl.neuralnetwork.normal.{NeuralNetworkBuilder, NeuralNetworkModel}
 import edu.twitter.model.service.ModelService
 import org.apache.spark.{SparkConf, SparkContext}
 import org.junit.runner.RunWith
@@ -23,18 +23,7 @@ class ModelClientFailedTweetSuite extends FunSuite with BeforeAndAfterAll {
   implicit val appConfig: AppConfig = DevConfig
 
   private class InnerModelsHolder extends ModelsHolder {
-
-    private val gradientBoosting = () => new GradientBoostingBuilder(sc)
-      .build(appConfig.paths.trainingDataPath,
-        appConfig.paths.savedGradientBoostingModelPath,
-        GradientBoostingModel.name)
-
-    private val neuralNetwork = () => new NeuralNetworkBuilder(sc)
-      .build(appConfig.paths.trainingDataPath,
-        appConfig.paths.savedNeuralNetworkModelPath,
-        NeuralNetworkModel.name)
-
-    lazy val allModels: GenSeq[GenericModel] = List(gradientBoosting, neuralNetwork).par.map(_.apply())
+    lazy val allModels: GenSeq[GenericModel] = List(new GradientBoostingBuilder(sc), new NeuralNetworkBuilder(sc)).par.map(_.build())
     lazy val allModelNames: List[String] = List(GradientBoostingModel.name, NeuralNetworkModel.name)
   }
 

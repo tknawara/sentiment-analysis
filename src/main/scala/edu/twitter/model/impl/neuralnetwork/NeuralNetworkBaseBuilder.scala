@@ -19,9 +19,9 @@ import org.nd4j.linalg.lossfunctions.LossFunctions
 /**
   * Build and evaluate the Neural network model from training and testing data set.
   */
-class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) extends GenericModelBuilder {
+class NeuralNetworkBaseBuilder(sc: SparkContext)(implicit appConfig: AppConfig) {
 
-  private val logger = Logger(classOf[NeuralNetworkBuilder])
+  private val logger = Logger(classOf[NeuralNetworkBaseBuilder])
 
   private val wordVectors = appConfig.wordVectors
   private val vectorSize: Int = wordVectors.getWordVector(wordVectors.vocab.wordAtIndex(0)).length // 100 in our case
@@ -32,11 +32,12 @@ class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) exte
     *
     * @return an instance of generic model.
     */
-  override def build(dataPath: String, savePath: String, resultingModelName: String): GenericModel = {
+  def build(dataPath: String, savePath: String): MultiLayerNetwork = {
 
     if (checkModelExist(savePath)) {
       val model = ModelSerializer.restoreMultiLayerNetwork(savePath)
-      return new NeuralNetworkModel(model, wordVectors, resultingModelName)
+      return model
+//      return new NeuralNetworkModel(model, wordVectors, resultingModelName)
     }
 
     val batchSize = 256 //Number of examples in each minibatch
@@ -65,7 +66,8 @@ class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) exte
 
     ModelSerializer.writeModel(net, savePath, true)
 
-    new NeuralNetworkModel(net, wordVectors, resultingModelName)
+    net
+//    new NeuralNetworkModel(net, wordVectors, resultingModelName)
   }
 
   /**

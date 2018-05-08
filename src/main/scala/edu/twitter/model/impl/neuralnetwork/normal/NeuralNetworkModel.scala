@@ -1,4 +1,4 @@
-package edu.twitter.model.impl.neuralnetwork
+package edu.twitter.model.impl.neuralnetwork.normal
 
 import edu.twitter.model.api.GenericModel
 import edu.twitter.model.client.dto.Label
@@ -17,9 +17,8 @@ import org.nd4j.linalg.indexing.{INDArrayIndex, NDArrayIndex}
   * @param model       actual model
   * @param wordVectors word2vec model used to extract the features
   */
-class NeuralNetworkModel(model: MultiLayerNetwork,
-                         wordVectors: WordVectors, val name: String) extends GenericModel {
-
+class NeuralNetworkModel(model: MultiLayerNetwork, wordVectors: WordVectors) extends GenericModel {
+  val name: String = NeuralNetworkModel.name
   private val vectorSize = wordVectors.getWordVector(wordVectors.vocab.wordAtIndex(0)).length
 
   /**

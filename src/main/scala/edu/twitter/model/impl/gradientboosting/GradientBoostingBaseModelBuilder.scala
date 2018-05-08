@@ -4,8 +4,8 @@ import java.io.File
 
 import com.typesafe.scalalogging.Logger
 import edu.twitter.config.AppConfig
-import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
 import edu.twitter.model.impl.TweetsLoader
+import edu.twitter.model.impl.gradientboosting.normal.GradientBoostingModel
 import org.apache.spark.SparkContext
 import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.regression.LabeledPoint
@@ -17,8 +17,7 @@ import org.apache.spark.rdd.RDD
 /**
   * Build and evaluate a gradient boosting model from training and testing data set.
   */
-class GradientBoostingBuilder(sc: SparkContext)
-                             (implicit appConfig: AppConfig) extends GenericModelBuilder {
+class GradientBoostingBaseModelBuilder(sc: SparkContext)(implicit appConfig: AppConfig) {
   private val logger = Logger(classOf[GradientBoostingModel])
 
   /**
@@ -34,10 +33,10 @@ class GradientBoostingBuilder(sc: SparkContext)
     *
     * @return GenericModel
     */
-  def build(dataPath: String, savePath: String, resultingModelName: String): GenericModel = {
+  def build(dataPath: String, savePath: String): GradientBoostedTreesModel = {
     if (checkModelExist(savePath)) {
       logger.info("The model is already trained, load it directly")
-      return new GradientBoostingModel(GradientBoostedTreesModel.load(sc, savePath), resultingModelName)
+      return GradientBoostedTreesModel.load(sc, savePath)
     }
 
     val tweetsLoader = new TweetsLoader(sc)
@@ -54,7 +53,7 @@ class GradientBoostingBuilder(sc: SparkContext)
     evaluate(model, testSet, "Testing")
     model.save(sc, savePath)
 
-    new GradientBoostingModel(model, resultingModelName)
+    model
   }
 
   /**

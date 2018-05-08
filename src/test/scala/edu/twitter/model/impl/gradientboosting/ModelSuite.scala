@@ -1,6 +1,7 @@
 package edu.twitter.model.impl.gradientboosting
 
 import edu.twitter.config.{AppConfig, DevConfig}
+import edu.twitter.model.impl.gradientboosting.normal.GradientBoostingBuilder
 import org.apache.spark.{SparkConf, SparkContext}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -21,10 +22,7 @@ class ModelSuite extends FunSuite with BeforeAndAfterAll {
   }
 
   test("model smoke test") {
-    assert(Try(new GradientBoostingBuilder(sc)
-      .build(appConfig.paths.trainingDataPath,
-        appConfig.paths.savedNeuralNetworkModelPath,
-        GradientBoostingModel.name)).isSuccess)
+    assert(Try(new GradientBoostingBuilder(sc).build()).isSuccess)
   }
 
   override def afterAll(): Unit = {

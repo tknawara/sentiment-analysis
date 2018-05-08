@@ -2,7 +2,7 @@ package edu.twitter.classification
 
 import edu.twitter.config.{AppConfig, DevConfig}
 import edu.twitter.holder.impl.TestModelsHolder
-import edu.twitter.model.impl.gradientboosting.{GradientBoostingBuilder, GradientBoostingModel}
+import edu.twitter.model.impl.gradientboosting.GradientBoostingBaseModelBuilder
 import edu.twitter.model.service.ModelService
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext}

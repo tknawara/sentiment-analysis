@@ -3,7 +3,7 @@ package edu.twitter.model.evaluation
 import edu.twitter.config.{AppConfig, DevConfig}
 import edu.twitter.holder.api.ModelsHolder
 import edu.twitter.holder.impl.Models
-import edu.twitter.model.impl.gradientboosting.GradientBoostingModel
+import edu.twitter.model.impl.gradientboosting.normal.GradientBoostingModel
 import edu.twitter.model.service.ModelService
 import org.apache.spark.{SparkConf, SparkContext}
 import org.junit.runner.RunWith

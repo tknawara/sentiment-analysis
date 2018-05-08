@@ -2,7 +2,6 @@ package edu.twitter.model.service
 
 import edu.twitter.config.{AppConfig, DevConfig}
 import edu.twitter.holder.api.ModelsHolder
-import edu.twitter.holder.impl.TestModelsHolder
 import edu.twitter.model.api.GenericModel
 import edu.twitter.model.client.classification.ClassificationClient
 import edu.twitter.model.client.dto.Label
