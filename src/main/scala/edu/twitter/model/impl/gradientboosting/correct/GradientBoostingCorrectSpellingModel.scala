@@ -10,6 +10,7 @@ class GradientBoostingCorrectSpellingModel(model: GradientBoostedTreesModel)(imp
   extends GradientBoostingModel(model) {
 
   override val name: String = GradientBoostingCorrectSpellingModel.name
+
   override def getLabel(tweetText: String): Label = {
     val correctTweet = SpellingCorrectionService.correctSpelling(tweetText)
     super.getLabel(correctTweet)

@@ -17,7 +17,7 @@ import org.apache.spark.rdd.RDD
 /**
   * Build and evaluate a gradient boosting model from training and testing data set.
   */
-class GradientBoostingBaseModelBuilder(sc: SparkContext)(implicit appConfig: AppConfig) {
+class GradientBoostingBaseBuilder(sc: SparkContext)(implicit appConfig: AppConfig) {
   private val logger = Logger(classOf[GradientBoostingModel])
 
   /**
