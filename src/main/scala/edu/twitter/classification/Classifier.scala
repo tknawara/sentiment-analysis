@@ -30,11 +30,12 @@ class Classifier(ssc: StreamingContext) {
     val tweets = new TwitterStream(ssc).createStream()
     val supportedLangIso = Set("en", "eng")
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    val ports = models.map(appConfig.modelServicePorts)
     val classifiedStream = for {
       tweet <- tweets
       if supportedLangIso(tweet.getLang)
-      responses = models.map { name =>
-        name -> ClassificationClient.callModelService(appConfig.modelServicePorts(name), name, tweet.getText)
+      responses = models.zip(ports).map { case (name, port) =>
+        name -> ClassificationClient.callModelService(port, name, tweet.getText)
       }
       allExist = responses.forall { case (_, r) => r.nonEmpty }
       if allExist

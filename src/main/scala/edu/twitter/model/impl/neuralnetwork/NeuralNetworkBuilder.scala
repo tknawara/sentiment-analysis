@@ -8,7 +8,6 @@ import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
 import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
 import org.deeplearning4j.eval.Evaluation
-import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer
 import org.deeplearning4j.nn.conf.layers.{GravesLSTM, RnnOutputLayer}
 import org.deeplearning4j.nn.conf.{GradientNormalization, MultiLayerConfiguration, NeuralNetConfiguration, Updater}
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
@@ -24,8 +23,7 @@ class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) exte
 
   private val logger = Logger(classOf[NeuralNetworkBuilder])
 
-  //val wordVectors = WordVectorSerializer.loadTxtVectors(new File(WORD_VECTORS_PATH))
-  private val wordVectors = WordVectorSerializer.readWord2VecModel(new File(appConfig.wordVectorPath))
+  private val wordVectors = appConfig.wordVectors
   private val vectorSize: Int = wordVectors.getWordVector(wordVectors.vocab.wordAtIndex(0)).length // 100 in our case
 
   /**

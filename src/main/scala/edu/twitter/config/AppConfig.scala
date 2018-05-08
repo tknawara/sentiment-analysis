@@ -4,11 +4,13 @@ import java.io.File
 
 import edu.twitter.model.impl.textblob.TextBlobService
 import org.apache.spark.streaming.Seconds
+import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer
+import org.deeplearning4j.models.word2vec.Word2Vec
 
 /** Application Configuration
   * we can add any configurations here to
   * be used by all parts of the application. */
-sealed trait AppConfig extends Serializable {
+sealed trait AppConfig {
 
   /** defines wither we are running
     * in production or not. */
@@ -49,11 +51,14 @@ sealed trait AppConfig extends Serializable {
   val streamingInterval = Seconds(10)
 
   val paths: DataPaths.type = DataPaths
+
+  /** word to vector used in neural network models. */
+  lazy val wordVectors: Word2Vec = WordVectorSerializer.readWord2VecModel(new File(wordVectorPath))
 }
 
 /** Holder for all paths used in the
   * Application. */
-object DataPaths extends Serializable {
+object DataPaths {
   lazy val savedNeuralNetworkModelPath: String = getAbsolutePath("saved-models") + File.separator + "NeuralNetworkModel.net"
   lazy val savedGradientBoostingModelPath: String = getAbsolutePath("saved-models") + File.separator + "GradientBoosting"
   lazy val savedNeuralNetworkModelCorrectPath: String = getAbsolutePath("saved-models") + File.separator + "NeuralNetworkModelCorrect.net"
