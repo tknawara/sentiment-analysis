@@ -16,7 +16,8 @@ class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig)
     */
   override def build(): GenericModel = {
     val baseModel = super.build(appConfig.paths.trainingDataPath,
-      appConfig.paths.savedNeuralNetworkModelPath)
+      appConfig.paths.savedNeuralNetworkModelPath,
+      NeuralNetworkModel.name)
     new NeuralNetworkModel(baseModel, appConfig.wordVectors)
   }
 }

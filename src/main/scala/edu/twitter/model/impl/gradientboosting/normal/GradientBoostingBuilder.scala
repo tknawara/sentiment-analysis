@@ -16,7 +16,8 @@ class GradientBoostingBuilder(sc: SparkContext)(implicit appConfig: AppConfig)
     */
   override def build(): GenericModel = {
     val baseModel = super.build(appConfig.paths.trainingDataPath,
-      appConfig.paths.savedGradientBoostingModelPath)
+      appConfig.paths.savedGradientBoostingModelPath,
+      GradientBoostingModel.name)
     new GradientBoostingModel(baseModel)
   }
 }

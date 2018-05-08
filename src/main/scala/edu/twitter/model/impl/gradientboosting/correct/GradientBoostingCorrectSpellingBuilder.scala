@@ -16,7 +16,8 @@ class GradientBoostingCorrectSpellingBuilder(sc: SparkContext)(implicit appConfi
     */
   override def build(): GenericModel = {
     val baseModel = super.build(appConfig.paths.correctSpellingTrainingDataPath,
-      appConfig.paths.savedGradientBoostingModelCorrectPath)
+      appConfig.paths.savedGradientBoostingModelCorrectPath,
+      GradientBoostingCorrectSpellingModel.name)
     new GradientBoostingCorrectSpellingModel(baseModel)
   }
 }

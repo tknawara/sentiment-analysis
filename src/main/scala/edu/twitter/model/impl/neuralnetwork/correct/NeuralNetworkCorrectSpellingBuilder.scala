@@ -16,7 +16,8 @@ class NeuralNetworkCorrectSpellingBuilder(sc: SparkContext)(implicit appConfig: 
     */
   override def build(): GenericModel = {
     val baseModel = super.build(appConfig.paths.correctSpellingTrainingDataPath,
-      appConfig.paths.savedNeuralNetworkModelCorrectPath)
+      appConfig.paths.savedNeuralNetworkModelCorrectPath,
+      NeuralNetworkCorrectSpellingModel.name)
     new NeuralNetworkCorrectSpellingModel(baseModel, appConfig.wordVectors)
   }
 }

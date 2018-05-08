@@ -33,7 +33,7 @@ class GradientBoostingBaseBuilder(sc: SparkContext)(implicit appConfig: AppConfi
     *
     * @return GenericModel
     */
-  def build(dataPath: String, savePath: String): GradientBoostedTreesModel = {
+  def build(dataPath: String, savePath: String, resultingModelName: String): GradientBoostedTreesModel = {
     if (checkModelExist(savePath)) {
       logger.info("The model is already trained, load it directly")
       return GradientBoostedTreesModel.load(sc, savePath)
@@ -49,8 +49,8 @@ class GradientBoostingBaseBuilder(sc: SparkContext)(implicit appConfig: AppConfi
     boostingStrategy.treeStrategy.setMaxDepth(appConfig.gradientDepth)
 
     val model = GradientBoostedTrees.train(trainingSet, boostingStrategy)
-    evaluate(model, trainingSet, "Training")
-    evaluate(model, testSet, "Testing")
+    evaluate(model, trainingSet, "Training", resultingModelName)
+    evaluate(model, testSet, "Testing", resultingModelName)
     model.save(sc, savePath)
 
     model
@@ -63,13 +63,14 @@ class GradientBoostingBaseBuilder(sc: SparkContext)(implicit appConfig: AppConfi
     * @param data    data used in evaluation
     * @param setType type of the data used for evaluation
     */
-  private def evaluate(model: GradientBoostedTreesModel, data: RDD[LabeledPoint], setType: String): Unit = {
+  private def evaluate(model: GradientBoostedTreesModel, data: RDD[LabeledPoint],
+                       setType: String, resultingModelName: String): Unit = {
     val predictionAndLabels = data.map { case LabeledPoint(label, features) =>
       val prediction = model.predict(features)
       (prediction, label)
     }
 
-    logger.info(s"================ $setType ==================")
+    logger.info(s"================ $resultingModelName - $setType ==================")
     val metrics = new MulticlassMetrics(predictionAndLabels)
 
     val accuracy = metrics.accuracy

@@ -32,12 +32,11 @@ class NeuralNetworkBaseBuilder(sc: SparkContext)(implicit appConfig: AppConfig) 
     *
     * @return an instance of generic model.
     */
-  def build(dataPath: String, savePath: String): MultiLayerNetwork = {
+  def build(dataPath: String, savePath: String, resultingModelName: String): MultiLayerNetwork = {
 
     if (checkModelExist(savePath)) {
       val model = ModelSerializer.restoreMultiLayerNetwork(savePath)
       return model
-//      return new NeuralNetworkModel(model, wordVectors, resultingModelName)
     }
 
     val batchSize = 256 //Number of examples in each minibatch
@@ -60,14 +59,13 @@ class NeuralNetworkBaseBuilder(sc: SparkContext)(implicit appConfig: AppConfig) 
     for (i <- 0 until nEpochs) {
       net.fit(train)
       train.reset()
-      evaluate(net, train, "Training", i + 1)
-      evaluate(net, test, "Testing", i + 1)
+      evaluate(net, train, "Training", i + 1, resultingModelName)
+      evaluate(net, test, "Testing", i + 1, resultingModelName)
     }
 
     ModelSerializer.writeModel(net, savePath, true)
 
     net
-//    new NeuralNetworkModel(net, wordVectors, resultingModelName)
   }
 
   /**
@@ -99,7 +97,8 @@ class NeuralNetworkBaseBuilder(sc: SparkContext)(implicit appConfig: AppConfig) 
     * @param setType      type of the data used for evaluation
     * @param EpochNumber  the number of the Epoch
     */
-  private def evaluate(model: MultiLayerNetwork, dataIterator: DataIterator, setType: String, EpochNumber: Int): Unit = {
+  private def evaluate(model: MultiLayerNetwork, dataIterator: DataIterator,
+                       setType: String, EpochNumber: Int, resultingModelName: String): Unit = {
     val evaluation = new Evaluation(2)
     while (dataIterator.hasNext) {
       val t = dataIterator.next
@@ -112,7 +111,7 @@ class NeuralNetworkBaseBuilder(sc: SparkContext)(implicit appConfig: AppConfig) 
     }
     dataIterator.reset()
 
-    logger.info(s"================ $setType ==================")
+    logger.info(s"================ $resultingModelName - $setType ==================")
     logger.info("Epoch Number " + EpochNumber + ":")
     logger.info(evaluation.stats)
   }
