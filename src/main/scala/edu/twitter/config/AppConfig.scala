@@ -99,11 +99,11 @@ object DevConfig extends AppConfig {
   * Configurations. */
 object ProdConfig extends AppConfig {
   val isProd = true
-  val neuralNetworkEpochs = 1
+  val neuralNetworkEpochs = 10
   val evaluateModels = true
   val persistEvaluation = true
-  val gradientIterations = 1
-  val gradientDepth = 1
+  val gradientIterations = 26
+  val gradientDepth = 6
   val bagOfWordsSize = 2000
   val wordVectorPath: String = paths.googleNewsPath
 
