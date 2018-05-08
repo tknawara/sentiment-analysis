@@ -4,6 +4,8 @@ import java.io.File
 
 import edu.twitter.model.impl.textblob.TextBlobService
 import org.apache.spark.streaming.Seconds
+import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer
+import org.deeplearning4j.models.word2vec.Word2Vec
 
 /** Application Configuration
   * we can add any configurations here to
@@ -49,6 +51,9 @@ sealed trait AppConfig extends Serializable {
   val streamingInterval = Seconds(10)
 
   val paths: DataPaths.type = DataPaths
+
+  /** word to vector used in neural network models. */
+  lazy val wordVectors: Word2Vec = WordVectorSerializer.readWord2VecModel(new File(wordVectorPath))
 }
 
 /** Holder for all paths used in the
@@ -94,11 +99,11 @@ object DevConfig extends AppConfig {
   * Configurations. */
 object ProdConfig extends AppConfig {
   val isProd = true
-  val neuralNetworkEpochs = 10
+  val neuralNetworkEpochs = 1
   val evaluateModels = true
   val persistEvaluation = true
-  val gradientIterations = 26
-  val gradientDepth = 6
+  val gradientIterations = 1
+  val gradientDepth = 1
   val bagOfWordsSize = 2000
   val wordVectorPath: String = paths.googleNewsPath
 
