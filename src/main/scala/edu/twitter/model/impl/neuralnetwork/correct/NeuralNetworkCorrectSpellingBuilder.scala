@@ -5,6 +5,11 @@ import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
 import edu.twitter.model.impl.neuralnetwork.NeuralNetworkBaseBuilder
 import org.apache.spark.SparkContext
 
+/** Builder for Neural network correct spelling model.
+  *
+  * @param sc        Spark Context.
+  * @param appConfig application configuration
+  */
 class NeuralNetworkCorrectSpellingBuilder(sc: SparkContext)(implicit appConfig: AppConfig)
   extends NeuralNetworkBaseBuilder(sc)
     with GenericModelBuilder {

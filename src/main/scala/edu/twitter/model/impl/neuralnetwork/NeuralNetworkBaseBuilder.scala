@@ -4,7 +4,6 @@ import java.io._
 
 import com.typesafe.scalalogging.Logger
 import edu.twitter.config.AppConfig
-import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
 import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
 import org.deeplearning4j.eval.Evaluation

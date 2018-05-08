@@ -5,6 +5,11 @@ import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
 import edu.twitter.model.impl.gradientboosting.GradientBoostingBaseBuilder
 import org.apache.spark.SparkContext
 
+/** Gradient boosting model builder.
+  *
+  * @param sc        Spark Context
+  * @param appConfig application configuration
+  */
 class GradientBoostingBuilder(sc: SparkContext)(implicit appConfig: AppConfig)
   extends GradientBoostingBaseBuilder(sc)
     with GenericModelBuilder {
