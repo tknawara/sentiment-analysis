@@ -7,7 +7,6 @@ import edu.twitter.model.client.dto.Label
   */
 trait GenericModel {
 
-
   def name: String
 
   /**
@@ -17,6 +16,5 @@ trait GenericModel {
     * @return 0 for sad & 1 for happy
     */
   def getLabel(tweetText: String): Label
-
 
 }

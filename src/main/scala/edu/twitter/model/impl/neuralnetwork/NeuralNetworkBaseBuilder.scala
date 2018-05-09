@@ -4,7 +4,6 @@ import java.io._
 
 import com.typesafe.scalalogging.Logger
 import edu.twitter.config.AppConfig
-import edu.twitter.model.api.{GenericModel, GenericModelBuilder}
 import edu.twitter.model.impl.TweetsLoader
 import org.apache.spark.SparkContext
 import org.deeplearning4j.eval.Evaluation
@@ -19,9 +18,9 @@ import org.nd4j.linalg.lossfunctions.LossFunctions
 /**
   * Build and evaluate the Neural network model from training and testing data set.
   */
-class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) extends GenericModelBuilder {
+class NeuralNetworkBaseBuilder(sc: SparkContext)(implicit appConfig: AppConfig) {
 
-  private val logger = Logger(classOf[NeuralNetworkBuilder])
+  private val logger = Logger(classOf[NeuralNetworkBaseBuilder])
 
   private val wordVectors = appConfig.wordVectors
   private val vectorSize: Int = wordVectors.getWordVector(wordVectors.vocab.wordAtIndex(0)).length // 100 in our case
@@ -32,11 +31,11 @@ class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) exte
     *
     * @return an instance of generic model.
     */
-  override def build(dataPath: String, savePath: String, resultingModelName: String): GenericModel = {
+  def build(dataPath: String, savePath: String, resultingModelName: String): MultiLayerNetwork = {
 
     if (checkModelExist(savePath)) {
       val model = ModelSerializer.restoreMultiLayerNetwork(savePath)
-      return new NeuralNetworkModel(model, wordVectors, resultingModelName)
+      return model
     }
 
     val batchSize = 256 //Number of examples in each minibatch
@@ -59,13 +58,13 @@ class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) exte
     for (i <- 0 until nEpochs) {
       net.fit(train)
       train.reset()
-      evaluate(net, train, "Training", i + 1)
-      evaluate(net, test, "Testing", i + 1)
+      evaluate(net, train, "Training", i + 1, resultingModelName)
+      evaluate(net, test, "Testing", i + 1, resultingModelName)
     }
 
     ModelSerializer.writeModel(net, savePath, true)
 
-    new NeuralNetworkModel(net, wordVectors, resultingModelName)
+    net
   }
 
   /**
@@ -97,7 +96,8 @@ class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) exte
     * @param setType      type of the data used for evaluation
     * @param EpochNumber  the number of the Epoch
     */
-  private def evaluate(model: MultiLayerNetwork, dataIterator: DataIterator, setType: String, EpochNumber: Int): Unit = {
+  private def evaluate(model: MultiLayerNetwork, dataIterator: DataIterator,
+                       setType: String, EpochNumber: Int, resultingModelName: String): Unit = {
     val evaluation = new Evaluation(2)
     while (dataIterator.hasNext) {
       val t = dataIterator.next
@@ -110,7 +110,7 @@ class NeuralNetworkBuilder(sc: SparkContext)(implicit appConfig: AppConfig) exte
     }
     dataIterator.reset()
 
-    logger.info(s"================ $setType ==================")
+    logger.info(s"================ $resultingModelName - $setType ==================")
     logger.info("Epoch Number " + EpochNumber + ":")
     logger.info(evaluation.stats)
   }

@@ -9,5 +9,5 @@ trait GenericModelBuilder {
     *
     * @return an instance of generic model.
     */
-  def build(dataPath: String, savePath: String, resultingModelName: String): GenericModel
+  def build(): GenericModel
 }
