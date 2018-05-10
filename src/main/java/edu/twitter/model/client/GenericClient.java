@@ -5,16 +5,16 @@ import edu.twitter.model.client.dto.TweetRequestBody;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.net.util.Base64;
 import org.apache.http.HttpEntity;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Option;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 
 /**
@@ -23,7 +23,10 @@ import java.nio.charset.Charset;
  */
 public final class GenericClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(GenericClient.class);
-    private static final CloseableHttpClient HTTP_CLIENT = HttpClients.createDefault();
+    private static final int TIME_OUT = 5000;
+    private static final RequestConfig REQUEST_CONFIG = RequestConfig.custom().setConnectTimeout(TIME_OUT).build();
+    private static final CloseableHttpClient HTTP_CLIENT =
+            HttpClientBuilder.create().setDefaultRequestConfig(REQUEST_CONFIG).build();
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
