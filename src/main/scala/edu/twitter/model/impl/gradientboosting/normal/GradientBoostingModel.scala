@@ -16,7 +16,7 @@ class GradientBoostingModel(model: GradientBoostedTreesModel)(implicit appConfig
   val name: String = GradientBoostingModel.name
   private val hashingTF = new HashingTF(appConfig.bagOfWordsSize)
 
-  /** @inheritdoc */
+  /** @inheritdoc*/
   override def getLabel(tweetText: String): Label = {
     val tokens = TweetTextFilter.filterTweet(tweetText).split(" ")
     val features = hashingTF.transform(tokens)

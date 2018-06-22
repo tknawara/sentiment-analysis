@@ -17,7 +17,7 @@ class GradientBoostingCorrectSpellingModel(model: GradientBoostedTreesModel)(imp
 
   override val name: String = GradientBoostingCorrectSpellingModel.name
 
-  /** @inheritdoc*/
+  /** @inheritdoc */
   override def getLabel(tweetText: String): Label = {
     val correctTweet = SpellingCorrectionService.correctSpelling(tweetText)
     super.getLabel(correctTweet)

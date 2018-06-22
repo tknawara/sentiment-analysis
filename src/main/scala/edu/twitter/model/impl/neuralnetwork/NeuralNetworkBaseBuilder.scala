@@ -38,7 +38,7 @@ class NeuralNetworkBaseBuilder(sc: SparkContext)(implicit appConfig: AppConfig) 
       return model
     }
 
-    val batchSize = 256 //Number of examples in each minibatch
+    val batchSize = 50 //Number of examples in each minibatch
     val nEpochs = appConfig.neuralNetworkEpochs //Number of epochs (full passes of training data) to train on
     val truncateReviewsToLength = 280 //Truncate reviews with length (# words) greater than this
 
@@ -78,7 +78,7 @@ class NeuralNetworkBaseBuilder(sc: SparkContext)(implicit appConfig: AppConfig) 
       .weightInit(WeightInit.XAVIER)
       .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue)
       .gradientNormalizationThreshold(1.0)
-      .learningRate(0.2)
+      .learningRate(0.1)
       .list
       .layer(0, new GravesLSTM.Builder().nIn(vectorSize).nOut(256)
         .activation(Activation.TANH)

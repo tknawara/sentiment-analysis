@@ -17,7 +17,7 @@ class NeuralNetworkCorrectSpellingModel(model: MultiLayerNetwork, wordVectors: W
 
   override val name: String = NeuralNetworkCorrectSpellingModel.name
 
-  /** @inheritdoc */
+  /** @inheritdoc*/
   override def getLabel(tweetText: String): Label = {
     val correctTweet = SpellingCorrectionService.correctSpelling(tweetText)
     super.getLabel(correctTweet)

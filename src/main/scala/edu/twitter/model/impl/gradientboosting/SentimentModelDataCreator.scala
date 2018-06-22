@@ -1,5 +1,6 @@
 package edu.twitter.model.impl.gradientboosting
 
+import edu.twitter.model.impl.TweetTextFilter
 import org.apache.spark.mllib.feature.HashingTF
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
@@ -63,9 +64,8 @@ class SentimentModelDataCreator(tweetsRDD: RDD[Row]) {
     */
   private def getLabeledRecords(): RDD[(Double, String)] = {
     val labeledTweets = tweetsRDD.map {
-      record => (record.getAs[Double]("label"), record.getAs[String]("msg"))
+      record => (record.getAs[Double]("label"), TweetTextFilter.filterTweet(record.getAs[String]("msg")))
     }
-
     labeledTweets
   }
 }
