@@ -22,8 +22,15 @@ object TweetTextFilter {
       .replaceAll("[8:=;]['`\\-]?[\\/|l*]", " <NEUTRALFACE> ")
       .replaceAll("<3", " <HEART> ")
       .replaceAll("[-+]?[.\\d]*[\\d]+[:,.\\d]*", " <NUMBER> ")
-      .replaceAll("!!+", " ! <REPEAT> ")
-      .replaceAll("\\?\\?+", " ? <REPEAT> ")
-      .replaceAll("\\.\\.+", " . <REPEAT> "), m => " " + m.group(1) + m.group(2) + " <ELONG> ")
+      .replaceAll("!!+", "! <REPEAT> ")
+      .replaceAll("\\?\\?+", "? <REPEAT> ")
+      .replaceAll("\\.\\.+", ". <REPEAT> ")
+      .replaceAll("!", " ! ")
+      .replaceAll("\\?", " ? ")
+      .replaceAll("\\.", " . ")
+      .replaceAll(" can\\'t ", " can not ")
+      .replaceAll(" won't ", " will not ")
+      .replaceAll("n\\'t ", " not ")
+      .replaceAll("[:,\\\"'\\(\\)\\[\\]|;]", ""), m => " " + m.group(1) + m.group(2) + " <ELONG> ")
   }
 }

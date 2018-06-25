@@ -10,7 +10,7 @@ import edu.twitter.model.service.ModelService
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.{SparkConf, SparkContext}
 import org.elasticsearch.spark.rdd.EsSpark
-
+import edu.twitter.model.impl.gradientboosting.normal.GradientBoostingBuilder
 /**
   * Application's entry point.
   *
@@ -29,7 +29,7 @@ object SentimentAnalyzer {
     val ssc = new StreamingContext(sc, appConfig.streamingInterval)
 
     new NeuralNetworkBuilder(sc).build()
-
+    //new GradientBoostingBuilder(sc).build()
     /*val indexHandler = new IndexHandler
     val indexCreationResult = indexHandler.create("twitter", "sentiment")
 

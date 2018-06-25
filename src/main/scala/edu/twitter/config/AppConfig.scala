@@ -103,9 +103,9 @@ object ProdConfig extends AppConfig {
   val neuralNetworkEpochs = 10
   val evaluateModels = true
   val persistEvaluation = true
-  val gradientIterations = 26
-  val gradientDepth = 6
-  val bagOfWordsSize = 2000
+  val gradientIterations = 40
+  val gradientDepth = 22
+  val bagOfWordsSize = 4000
   val wordVectorPath: String = paths.twitterGloVePath
 
   val modelServicePorts: Map[String, String] =

@@ -1,5 +1,6 @@
 package edu.twitter.model.impl.gradientboosting
 
+import edu.twitter.config.AppConfig
 import edu.twitter.model.impl.TweetTextFilter
 import org.apache.spark.mllib.feature.HashingTF
 import org.apache.spark.mllib.regression.LabeledPoint
@@ -11,7 +12,7 @@ import org.apache.spark.sql.Row
   *
   * @param tweetsRDD RDD contain stream of tweets
   */
-class SentimentModelDataCreator(tweetsRDD: RDD[Row]) {
+class SentimentModelDataCreator(tweetsRDD: RDD[Row])(implicit appConfig: AppConfig) {
 
   /**
     * Load the labeled tweets then transform each tweet's text to
@@ -24,7 +25,7 @@ class SentimentModelDataCreator(tweetsRDD: RDD[Row]) {
     val transformedTweets = transformData(labeledTweets)
 
     // Split the data into training and validation sets (30% held out for validation testing)
-    val splits = transformedTweets.randomSplit(Array(0.7, 0.3))
+    val splits = transformedTweets.randomSplit(Array(0.85, 0.15))
     (splits(0), splits(1))
   }
 
@@ -47,7 +48,7 @@ class SentimentModelDataCreator(tweetsRDD: RDD[Row]) {
     * @return RDD of label (0 , 1) and sparse vector (ex: (1.0,(2000,[105,1139,1707,1872,1964],[1.0,1.0,1.0,1.0,1.0])))
     */
   def transformData(labeledTweets: RDD[(Double, String)]): RDD[LabeledPoint] = {
-    val hashingTF = new HashingTF(2000)
+    val hashingTF = new HashingTF(appConfig.bagOfWordsSize)
 
     val inputLabeled = labeledTweets.map {
       case (label, msg) =>

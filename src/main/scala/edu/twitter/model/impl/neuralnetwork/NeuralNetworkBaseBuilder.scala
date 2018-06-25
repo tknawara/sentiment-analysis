@@ -60,9 +60,11 @@ class NeuralNetworkBaseBuilder(sc: SparkContext)(implicit appConfig: AppConfig) 
       train.reset()
       evaluate(net, train, "Training", i + 1, resultingModelName)
       evaluate(net, test, "Testing", i + 1, resultingModelName)
+      val num = (i+1).toString
+      ModelSerializer.writeModel(net, savePath + num, true)
     }
 
-    ModelSerializer.writeModel(net, savePath, true)
+    //ModelSerializer.writeModel(net, savePath, true)
 
     net
   }
