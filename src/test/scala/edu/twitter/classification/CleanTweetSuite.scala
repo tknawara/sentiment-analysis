@@ -14,4 +14,10 @@ class CleanTweetSuite extends FunSuite {
     assert(res == filteredTweet)
   }
 
+  test("filter Retweeted tweets") {
+    val tweet = "RT this is a retweeted tweet"
+    assert(tweet.startsWith("RT "))
+    val validOne = "RTtweet this is a valid tweet"
+    assert(!validOne.startsWith("RT "))
+  }
 }
