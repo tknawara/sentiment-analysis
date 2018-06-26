@@ -21,8 +21,8 @@ class Models(sc: SparkContext)(implicit appConfig: AppConfig) extends ModelsHold
 
   lazy val allModels: ParSeq[GenericModel] =
     List(new GradientBoostingBuilder(sc),
-      new NeuralNetworkBuilder(sc))
+      new NeuralNetworkBuilder(sc)).par.map(_.build())
 
   lazy val allModelNames: List[String] = List(GradientBoostingModel.name,
-    NeuralNetworkModel.name, TextBlobService.name)
+    NeuralNetworkModel.name)
 }
