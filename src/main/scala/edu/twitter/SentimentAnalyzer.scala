@@ -42,7 +42,7 @@ object SentimentAnalyzer {
     modelService.start()
 
     if (appConfig.evaluateModels) {
-      new ModelEvaluator(sc).evaluateWithCorrection(models.allModelNames)
+      new ModelEvaluator(sc).evaluate(models.allModelNames)
     }
 
     val classifier = new Classifier(ssc)

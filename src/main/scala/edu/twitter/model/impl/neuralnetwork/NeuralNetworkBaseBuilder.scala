@@ -34,6 +34,7 @@ class NeuralNetworkBaseBuilder(sc: SparkContext)(implicit appConfig: AppConfig) 
   def build(dataPath: String, savePath: String, resultingModelName: String): MultiLayerNetwork = {
 
     if (checkModelExist(savePath)) {
+      logger.info("The model is already trained, load it directly")
       val model = ModelSerializer.restoreMultiLayerNetwork(savePath)
       return model
     }
