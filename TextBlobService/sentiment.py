@@ -12,14 +12,14 @@ def sentiment():
     @output: SAD or HAPPY label.
     """
     tweet = request.get_json()['tweetMsg']
-    decoded_tweet = decode(tweet)
+    decoded_tweet = clean_tweet(decode(tweet))
     text_blob = TextBlob(decoded_tweet)
     sentiment = text_blob.sentiment
-    if(sentiment.polarity > 0):
+    if(sentiment.polarity >= 0):
         return '"HAPPY"'
     else:
         return '"SAD"'
-
+    
 @app.route('/TextBlob/correct', methods = ['POST'])
 def spelling_correct():
     """
@@ -42,6 +42,9 @@ def encode(tweet):
     """encode a tweet"""
     return base64.b64encode(tweet.encode())
 
+def clean_tweet(tweet):
+    """ clean a tweet by removing links, special characters"""
+    return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

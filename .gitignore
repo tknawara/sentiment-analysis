@@ -9,3 +9,4 @@ twitter4j.properties
 *.txt
 NewsModel.txt
 *.json
+Pipfile*
