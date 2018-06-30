@@ -101,8 +101,8 @@ object DevConfig extends AppConfig {
 object ProdConfig extends AppConfig {
   val isProd = true
   val neuralNetworkEpochs = 10
-  val evaluateModels = true
-  val persistEvaluation = true
+  val evaluateModels = false
+  val persistEvaluation = false
   val gradientIterations = 40
   val gradientDepth = 22
   val bagOfWordsSize = 4000
