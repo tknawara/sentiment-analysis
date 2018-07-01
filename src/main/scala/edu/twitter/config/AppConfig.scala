@@ -48,7 +48,7 @@ sealed trait AppConfig {
 
   /** Used for configuring the streaming
     * window interval. */
-  val streamingInterval = Seconds(2)
+  val streamingInterval = Seconds(10)
 
   val paths: DataPaths.type = DataPaths
 
