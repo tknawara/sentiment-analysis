@@ -1,7 +1,7 @@
 package edu.twitter.index
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.ElasticsearchClientUri
+import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.{HttpClient, RequestFailure}
 import com.typesafe.scalalogging.Logger
 
@@ -17,7 +17,8 @@ class IndexHandler {
 
   /**
     * create an ElasticSearch index if it doesn't exist.
-    * @param indexName name of the index to create, matches the json file name under the index-mapping directory.
+    *
+    * @param indexName   name of the index to create, matches the json file name under the index-mapping directory.
     * @param mappingName mapping name of the index, matches the index mapping attribute specified in the json file.
     * @return Either monad:
     *         in case of successfully created an index or the index already exists it returns the name of the index.

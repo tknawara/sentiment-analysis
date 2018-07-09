@@ -33,7 +33,7 @@ class Classifier(ssc: StreamingContext) {
     val ports = models.map(appConfig.modelServicePorts)
     val classifiedStream = for {
       tweet <- tweets
-      if supportedLangIso(tweet.getLang)
+      if supportedLangIso(tweet.getLang) && !tweet.getText.startsWith("RT ")
       responses = models.zip(ports).map { case (name, port) =>
         name -> ClassificationClient.callModelService(port, name, tweet.getText)
       }

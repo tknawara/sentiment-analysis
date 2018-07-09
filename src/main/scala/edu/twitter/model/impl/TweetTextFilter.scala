@@ -5,7 +5,6 @@ package edu.twitter.model.impl
   * the classification accuracy.
   */
 object TweetTextFilter {
-  private val invalidTokens = Set("http", "@", "#")
 
   /**
     * Remove all invalid tokens from tweet.
@@ -14,6 +13,24 @@ object TweetTextFilter {
     * @return filtered tweet
     */
   def filterTweet(tweet: String): String = {
-    tweet.split(" ").filter(s => invalidTokens.forall(!s.contains(_))).mkString(" ")
+    "\\b(\\S*?)(.)\\2{2,}\\b".r.replaceAllIn(tweet.replaceAll("https?:\\/\\/\\S+\\b|www\\.(\\w+\\.)+\\S*", " <URL> ")
+      .replaceAll("/", " / ")
+      .replaceAll("@\\w+", " <USER> ")
+      .replaceAll("[8:=;]['`\\-]?[)d]+|[)d]+['`\\-]?[8:=;]", " <SMILE> ")
+      .replaceAll("[8:=;]['`\\-]?p+", " <LOLFACE> ")
+      .replaceAll("[8:=;]['`\\-]?\\(+|\\)+['`\\-]?[8:=;]", " <SADFACE> ")
+      .replaceAll("[8:=;]['`\\-]?[\\/|l*]", " <NEUTRALFACE> ")
+      .replaceAll("<3", " <HEART> ")
+      .replaceAll("[-+]?[.\\d]*[\\d]+[:,.\\d]*", " <NUMBER> ")
+      .replaceAll("!!+", "! <REPEAT> ")
+      .replaceAll("\\?\\?+", "? <REPEAT> ")
+      .replaceAll("\\.\\.+", ". <REPEAT> ")
+      .replaceAll("!", " ! ")
+      .replaceAll("\\?", " ? ")
+      .replaceAll("\\.", " . ")
+      .replaceAll(" can\\'t ", " can not ")
+      .replaceAll(" won't ", " will not ")
+      .replaceAll("n\\'t ", " not ")
+      .replaceAll("[:,\\\"'\\(\\)\\[\\]|;]", ""), m => " " + m.group(1) + m.group(2) + " <ELONG> ")
   }
 }

@@ -6,4 +6,7 @@ twitter4j.properties
 *.iml
 *.gz
 *.log
+*.txt
 NewsModel.txt
+*.json
+Pipfile*

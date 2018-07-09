@@ -5,7 +5,7 @@ import edu.twitter.model.client.dto.Label
 import edu.twitter.model.impl.TweetTextFilter
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
-import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.CommonPreprocessor
+import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.LowCasePreProcessor
 import org.deeplearning4j.text.tokenization.tokenizerfactory.{DefaultTokenizerFactory, TokenizerFactory}
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
@@ -50,7 +50,7 @@ class NeuralNetworkModel(model: MultiLayerNetwork, wordVectors: WordVectors) ext
   def loadFeaturesFromString(reviewContents: String): INDArray = {
 
     val tokenizerFactory: TokenizerFactory = new DefaultTokenizerFactory
-    tokenizerFactory.setTokenPreProcessor(new CommonPreprocessor)
+    tokenizerFactory.setTokenPreProcessor(new LowCasePreProcessor)
 
     import scala.collection.JavaConversions._
     val tokens = tokenizerFactory.create(reviewContents).getTokens

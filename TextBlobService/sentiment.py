@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from textblob import TextBlob
 import base64
+import re
 app = Flask(__name__)
 
 
@@ -12,14 +13,14 @@ def sentiment():
     @output: SAD or HAPPY label.
     """
     tweet = request.get_json()['tweetMsg']
-    decoded_tweet = decode(tweet)
+    decoded_tweet = clean_tweet(decode(tweet))
     text_blob = TextBlob(decoded_tweet)
     sentiment = text_blob.sentiment
-    if(sentiment.polarity > 0):
+    if(sentiment.polarity >= 0):
         return '"HAPPY"'
     else:
         return '"SAD"'
-
+    
 @app.route('/TextBlob/correct', methods = ['POST'])
 def spelling_correct():
     """
@@ -42,6 +43,23 @@ def encode(tweet):
     """encode a tweet"""
     return base64.b64encode(tweet.encode())
 
+def clean_tweet(tweet):
+    """ clean a tweet by removing links, special characters """
+    tweet = re.sub("https?:\\/\\/\\S+\\b|www\\.(\\w+\\.)+\\S*", " ", tweet)
+    tweet = re.sub("@\\w+", " ", tweet)
+    tweet = re.sub("/", " / ", tweet)
+    tweet = re.sub("[8:=;]['`\\-]?[)d]+|[)d]+['`\\-]?[8:=;]", " ", tweet)
+    tweet = re.sub("[8:=;]['`\\-]?p+", " ", tweet)
+    tweet = re.sub("[8:=;]['`\\-]?\\(+|\\)+['`\\-]?[8:=;]", " ", tweet)
+    tweet = re.sub("[8:=;]['`\\-]?[\\/|l*]", " ", tweet)
+    tweet = re.sub("<3", " ", tweet)
+    tweet = re.sub("[-+]?[.\\d]*[\\d]+[:,.\\d]*", " ", tweet)
+    tweet = re.sub("!", " ! ", tweet)
+    tweet = re.sub(" can\\'t ", " can not ", tweet)
+    tweet = re.sub(" won't ", " will not ", tweet)
+    tweet = re.sub("n\\'t ", "not ", tweet)
+
+    return tweet
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

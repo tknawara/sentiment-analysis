@@ -5,10 +5,11 @@ import java.util
 import java.util.NoSuchElementException
 
 import com.typesafe.scalalogging.Logger
+import edu.twitter.model.impl.TweetTextFilter
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors
-import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.CommonPreprocessor
+import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.{CommonPreprocessor, LowCasePreProcessor}
 import org.deeplearning4j.text.tokenization.tokenizerfactory.{DefaultTokenizerFactory, TokenizerFactory}
 import org.nd4j.linalg.dataset.DataSet
 import org.nd4j.linalg.dataset.api.DataSetPreProcessor
@@ -41,7 +42,7 @@ class DataIterator(val data: RDD[Row],
   private val logger = Logger(classOf[DataIterator])
   private var dataList = Random.shuffle(data.collect().toList)
   final private val tokenizerFactory: TokenizerFactory = new DefaultTokenizerFactory
-  tokenizerFactory.setTokenPreProcessor(new CommonPreprocessor)
+  tokenizerFactory.setTokenPreProcessor(new LowCasePreProcessor)
 
   private var dataCursor: Int = 0
 
@@ -77,7 +78,7 @@ class DataIterator(val data: RDD[Row],
 
     while (i < num && dataCursor < totalExamples) {
 
-      val msg = dataList(dataCursor).getAs[String]("msg")
+      val msg = TweetTextFilter.filterTweet(dataList(dataCursor).getAs[String]("msg"))
       val label = dataList(dataCursor).getAs[Double]("label")
 
       //TODO: Find why some rows return null.

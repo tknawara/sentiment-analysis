@@ -65,6 +65,7 @@ object DataPaths {
   lazy val savedGradientBoostingModelCorrectPath: String = getAbsolutePath("saved-models") + File.separator + "GradientBoostingCorrect"
   lazy val newsModelPath: String = getAbsolutePath("NewsModel.txt")
   lazy val googleNewsPath: String = getAbsolutePath("GoogleNews-vectors-negative300.bin.gz")
+  lazy val twitterGloVePath: String = getAbsolutePath("glove.twitter.27B.200d.txt")
   lazy val trainingDataPath: String = getAbsolutePath("labeled-tweets")
   lazy val correctSpellingTrainingDataPath: String = getAbsolutePath("correct-tweets")
   lazy val validationDataPath: String = getAbsolutePath("validation-tweets")
@@ -100,12 +101,12 @@ object DevConfig extends AppConfig {
 object ProdConfig extends AppConfig {
   val isProd = true
   val neuralNetworkEpochs = 10
-  val evaluateModels = true
-  val persistEvaluation = true
-  val gradientIterations = 26
-  val gradientDepth = 6
-  val bagOfWordsSize = 2000
-  val wordVectorPath: String = paths.googleNewsPath
+  val evaluateModels = false
+  val persistEvaluation = false
+  val gradientIterations = 40
+  val gradientDepth = 22
+  val bagOfWordsSize = 4000
+  val wordVectorPath: String = paths.twitterGloVePath
 
   val modelServicePorts: Map[String, String] =
     Map(TextBlobService.name -> "5000").withDefaultValue("8080")

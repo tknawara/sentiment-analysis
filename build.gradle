@@ -12,9 +12,9 @@ apply plugin: 'jacoco'
 sourceCompatibility = 1.8
 
 run {
-    args = ['dev']  // possible values: 'dev', 'prod'
+    args = ['prod']  // possible values: 'dev', 'prod'
     if (args[0] == 'prod') {
-        applicationDefaultJvmArgs = ['-Xms5g']
+        applicationDefaultJvmArgs = ['-Xms15g']
     }
 }
 
