@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/tarek-nawara/sentiment-analysis.svg?branch=master)](https://travis-ci.org/tarek-nawara/sentiment-analysis)
 [![codecov](https://codecov.io/gh/tarek-nawara/sentiment-analysis/branch/master/graph/badge.svg)](https://codecov.io/gh/tarek-nawara/sentiment-analysis)
-
+[![CodeFactor](https://www.codefactor.io/repository/github/tarek-nawara/sentiment-analysis/badge)](https://www.codefactor.io/repository/github/tarek-nawara/sentiment-analysis)
 
 # sentiment-analysis
 Simple show case of consuming twitter api and performing sentiment analysis over tweets
